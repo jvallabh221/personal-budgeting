@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { proxyChat } from "./claude-proxy.js";
+import { proxyVerse } from "./verse-proxy.js";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PREFERRED_PORT = Number(process.env.PORT || 5173);
@@ -82,6 +83,16 @@ const server = http.createServer(async (req, res) => {
     }
     return;
   }
+  if (req.method === "POST" && url.pathname === "/api/verse") {
+    try {
+      const payload = JSON.parse(await readBody(req) || "{}");
+      const result = await proxyVerse(payload);
+      sendJson(res, 200, result);
+    } catch (err) {
+      sendJson(res, 200, { ok: false, reason: "error", message: err.message || "Verse lookup failed." });
+    }
+    return;
+  }
   if (req.method !== "GET" && req.method !== "HEAD") {
     send(res, 405, "Method not allowed");
     return;
@@ -90,17 +101,22 @@ const server = http.createServer(async (req, res) => {
 });
 
 function listen(port) {
-  server.once("error", (err) => {
+  const onError = (err) => {
     if (err.code === "EADDRINUSE" && port === PREFERRED_PORT) {
+      server.removeListener("listening", onListening);
       listen(5180);
       return;
     }
     console.error(err);
     process.exit(1);
-  });
-  server.listen(port, "127.0.0.1", () => {
-    console.log(`Budget app at http://127.0.0.1:${port}/?v=30`);
-  });
+  };
+  const onListening = () => {
+    server.removeListener("error", onError);
+    console.log(`Budget app at http://127.0.0.1:${port}/?v=31`);
+  };
+  server.once("error", onError);
+  server.once("listening", onListening);
+  server.listen(port, "127.0.0.1");
 }
 
 listen(PREFERRED_PORT);

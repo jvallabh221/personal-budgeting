@@ -155,6 +155,22 @@
     .pie-legend span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .pie-legend small { color: var(--muted); font-size: 12px; margin-left: 6px; }
     .pie-legend em { font-style: normal; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; }
+    .verse {
+      margin: 0;
+      padding: 14px 18px;
+      background: var(--violet-soft);
+      border: 1px solid #e2d8fb;
+      border-left: 4px solid var(--violet);
+      border-radius: 14px;
+    }
+    .verse p { margin: 0; font-size: 15px; line-height: 1.5; }
+    .verse footer {
+      margin-top: 6px;
+      font-size: 13px;
+      font-weight: 650;
+      color: var(--violet);
+    }
+    .verse footer small { font-weight: 400; color: var(--muted); margin-left: 6px; }
     .month-bar { display: flex; align-items: baseline; gap: 12px; }
     .month-bar h2 { margin: 0; color: var(--blue); }
     .month-bar select { width: auto; }
@@ -582,6 +598,7 @@
 
   <main>
     <section id="view-month">
+      <blockquote id="verse" class="verse hidden"></blockquote>
       <div class="month-bar">
         <h2>This month</h2>
         <select id="monthKey"></select>
@@ -637,6 +654,26 @@
           <input id="backupFile" type="file" accept="application/json,.json" class="hidden" />
         </div>
         <p class="caption" id="backupStatus" style="margin:10px 0 0"></p>
+      </div>
+
+      <div class="section card tone-keys">
+        <h3 style="margin:0">Verse of the day</h3>
+        <p class="caption">A verse sits at the top of This month, refreshed once a day when you open the app. YouVersion needs a free app key from platform.youversion.com; without one a built-in verse shows.</p>
+        <div class="row">
+          <div>
+            <label>YouVersion app key</label>
+            <input id="bibleKey" type="password" autocomplete="off" placeholder="x-yvp-app-key" />
+          </div>
+          <div>
+            <label>Bible version</label>
+            <select id="bibleVersion"></select>
+          </div>
+          <div class="field-actions">
+            <label class="sent-check"><input type="checkbox" id="bibleShow" /> Show the verse</label>
+            <button type="button" class="ghost" id="bibleRefresh">Get today's verse</button>
+          </div>
+        </div>
+        <p class="caption" id="bibleStatus" style="margin:10px 0 0"></p>
       </div>
 
       <div class="section card tone-keys">
@@ -776,6 +813,29 @@
     const BILL_KEYS = ["rent", "utilities", "carInsurance"];
     const BALANCE_KEYS = [...DEBT_KEYS, "personal"];
     const ALL_KEYS = [...BILL_KEYS, ...BALANCE_KEYS];
+    const BIBLE_VERSIONS = [
+      { id: 3034, label: "BSB — Berean Standard Bible" },
+      { id: 206, label: "WEBUS — World English Bible" },
+      { id: 12, label: "ASV — American Standard Version" },
+      { id: 111, label: "NIV — New International Version" },
+    ];
+    // Shown until a YouVersion app key is saved, so the top of the page is never empty.
+    const FALLBACK_VERSES = [
+      { reference: "Proverbs 21:5", text: "The plans of the diligent lead surely to abundance, but everyone who is hasty comes only to poverty." },
+      { reference: "Luke 14:28", text: "For which of you, desiring to build a tower, does not first sit down and count the cost, whether he has enough to complete it?" },
+      { reference: "Proverbs 13:11", text: "Wealth gained hastily will dwindle, but whoever gathers little by little will increase it." },
+      { reference: "Matthew 6:34", text: "Therefore do not be anxious about tomorrow, for tomorrow will be anxious for itself. Sufficient for the day is its own trouble." },
+      { reference: "Philippians 4:19", text: "And my God will supply every need of yours according to his riches in glory in Christ Jesus." },
+      { reference: "Proverbs 3:9", text: "Honor the Lord with your wealth and with the firstfruits of all your produce." },
+      { reference: "Psalm 37:21", text: "The wicked borrows but does not pay back, but the righteous is generous and gives." },
+      { reference: "Hebrews 13:5", text: "Keep your life free from love of money, and be content with what you have." },
+      { reference: "Proverbs 22:7", text: "The rich rules over the poor, and the borrower is the slave of the lender." },
+      { reference: "Galatians 6:9", text: "And let us not grow weary of doing good, for in due season we will reap, if we do not give up." },
+      { reference: "Ecclesiastes 5:10", text: "He who loves money will not be satisfied with money, nor he who loves wealth with his income." },
+      { reference: "1 Timothy 6:6", text: "But godliness with contentment is great gain." },
+      { reference: "Proverbs 27:23", text: "Know well the condition of your flocks, and give attention to your herds." },
+      { reference: "Psalm 23:1", text: "The Lord is my shepherd; I shall not want." },
+    ];
     const CLAUDE_MODELS = [
       { id: "claude-haiku-4-5", label: "Haiku 4.5 — cheap everyday" },
       { id: "claude-sonnet-4-6", label: "Sonnet 4.6 — default" },
@@ -804,8 +864,10 @@
         mainPayDays: [5, 20],
         biweeklyStart: "2026-10-02",
         claude: { model: "claude-sonnet-4-6", keys: [] },
+        bible: { appKey: "", versionId: 3034, show: true },
       },
       chat: { messages: [] },
+      verse: null,
     };
 
     function load() {
@@ -1848,6 +1910,77 @@
         </div>
       `;
     }
+    function bibleState() {
+      if (!state.settings.bible) state.settings.bible = { appKey: "", versionId: 3034, show: true };
+      const bible = state.settings.bible;
+      if (bible.show === undefined) bible.show = true;
+      return bible;
+    }
+    function dayOfYear(date = new Date()) {
+      const start = new Date(date.getFullYear(), 0, 1);
+      return Math.floor((date - start) / 86400000) + 1;
+    }
+    function fallbackVerse() {
+      const pick = FALLBACK_VERSES[(dayOfYear() - 1) % FALLBACK_VERSES.length];
+      return { ...pick, source: "offline" };
+    }
+    function renderVerse() {
+      const el = document.getElementById("verse");
+      if (!el) return;
+      const verse = state.verse;
+      if (!bibleState().show || !verse) {
+        el.classList.add("hidden");
+        return;
+      }
+      el.classList.remove("hidden");
+      el.innerHTML = `
+        <p>${escapeHtml(verse.text)}</p>
+        <footer>${escapeHtml(verse.reference)}${verse.source === "offline" ? `<small>add a YouVersion key in Settings for today's verse</small>` : ""}</footer>
+      `;
+    }
+    // One lookup per calendar day, on open — same rule as the Coach.
+    async function loadVerse() {
+      const today = todayStamp();
+      const bible = bibleState();
+      if (!state.verse || state.verse.dayKey !== today) {
+        state.verse = { ...fallbackVerse(), dayKey: today };
+        save("quiet");
+      }
+      renderVerse();
+      if (state.verse.source === "youversion") return;
+      if (!bible.appKey) return;
+      try {
+        const res = await fetch("/api/verse", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ appKey: bible.appKey, day: dayOfYear(), versionId: bible.versionId }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          state.verse = { reference: data.reference, text: data.text, dayKey: today, source: "youversion" };
+        } else {
+          state.verse = { ...state.verse, note: data.message };
+        }
+      } catch (err) {
+        state.verse = { ...state.verse, note: err.message };
+      }
+      save("quiet");
+      renderVerse();
+      renderBibleStatus();
+    }
+    function renderBibleStatus() {
+      const el = document.getElementById("bibleStatus");
+      if (!el) return;
+      const bible = bibleState();
+      if (!bible.appKey) {
+        el.textContent = "No app key yet, so a built-in verse shows. Get a free key at platform.youversion.com.";
+        return;
+      }
+      const verse = state.verse;
+      el.textContent = verse && verse.source === "youversion"
+        ? `Today's verse loaded: ${verse.reference}.`
+        : `Could not load today's verse${verse && verse.note ? " — " + verse.note : ""}. Showing a built-in verse.`;
+    }
     function claudeState() {
       if (!state.settings.claude) state.settings.claude = { model: "claude-sonnet-4-6", keys: [] };
       if (!Array.isArray(state.settings.claude.keys)) state.settings.claude.keys = [];
@@ -2849,14 +2982,43 @@
       setChatOpen(!document.getElementById("chatDock").classList.contains("open"));
     });
 
+    document.getElementById("bibleKey").addEventListener("input", (e) => {
+      bibleState().appKey = e.target.value.trim();
+      save("quiet");
+      renderBibleStatus();
+    });
+    document.getElementById("bibleVersion").addEventListener("change", (e) => {
+      bibleState().versionId = Number(e.target.value) || 3034;
+      state.verse = null;
+      save("quiet");
+      loadVerse();
+    });
+    document.getElementById("bibleShow").addEventListener("change", (e) => {
+      bibleState().show = e.target.checked;
+      save("quiet");
+      renderVerse();
+    });
+    document.getElementById("bibleRefresh").addEventListener("click", () => {
+      state.verse = null;
+      loadVerse();
+    });
+
     monthOptions();
     const grocInit = document.getElementById("groceriesWeekly");
     if (grocInit) grocInit.value = state.settings.groceriesWeekly ?? "50";
     const gasInit = document.getElementById("gasRoom");
     if (gasInit) gasInit.value = state.settings.gasRoom ?? "40";
+    const bibleInit = bibleState();
+    document.getElementById("bibleKey").value = bibleInit.appKey || "";
+    document.getElementById("bibleShow").checked = bibleInit.show !== false;
+    document.getElementById("bibleVersion").innerHTML = BIBLE_VERSIONS.map((v) =>
+      `<option value="${v.id}" ${v.id === Number(bibleInit.versionId) ? "selected" : ""}>${escapeHtml(v.label)}</option>`
+    ).join("");
     renderPaychecks();
     renderMonth();
     renderChat();
+    loadVerse();
+    renderBibleStatus();
     if (liveKeys().length) refreshAdvice("login");
   </script>
 </body>

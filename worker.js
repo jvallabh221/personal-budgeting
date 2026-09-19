@@ -1,9 +1,16 @@
 import { proxyChat } from "./claude-proxy.js";
+import { proxyVerse } from "./verse-proxy.js";
+
+const ROUTES = {
+  "/api/chat": proxyChat,
+  "/api/verse": proxyVerse,
+};
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname === "/api/chat") {
+    const handler = ROUTES[url.pathname];
+    if (handler) {
       if (request.method === "OPTIONS") {
         return new Response(null, {
           status: 204,
@@ -19,7 +26,7 @@ export default {
       }
       try {
         const payload = await request.json();
-        const result = await proxyChat(payload);
+        const result = await handler(payload);
         return Response.json(result, { headers: { "Cache-Control": "no-store" } });
       } catch (err) {
         return Response.json(

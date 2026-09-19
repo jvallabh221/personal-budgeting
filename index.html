@@ -9,7 +9,7 @@
     :root {
       --bg: #ffffff;
       --paper: #ffffff;
-      --ink: #111827;
+      --ink: #1f2937;
       --muted: #5b6472;
       --line: #e6e8ee;
       --card: #ffffff;
@@ -20,6 +20,22 @@
       --warn: #b45309;
       --bad: #dc2626;
       --pay: #1d4ed8;
+      --green: #0f8f5b;
+      --green-soft: #e8f8f0;
+      --blue: #1d4ed8;
+      --blue-soft: #e8efff;
+      --amber: #d97706;
+      --amber-soft: #fff4e0;
+      --lime: #4d7c0f;
+      --lime-soft: #f2f8e3;
+      --teal: #0e7490;
+      --teal-soft: #e4f6fa;
+      --orange: #c2410c;
+      --orange-soft: #ffeee6;
+      --rose: #be123c;
+      --rose-soft: #ffe8ee;
+      --purple: #6d28d9;
+      --purple-soft: #f1e9ff;
     }
     * { box-sizing: border-box; }
     html { -webkit-text-size-adjust: 100%; }
@@ -41,8 +57,12 @@
       margin: 0 0 6px;
       font-size: 30px;
       letter-spacing: -0.04em;
+      background: linear-gradient(90deg, #0f8f5b 0%, #1d4ed8 52%, #6d28d9 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
-    header p { margin: 0 0 16px; color: var(--muted); max-width: 70ch; }
+    header p { margin: 0 0 16px; color: #3f6b82; max-width: 70ch; }
     .tabs { display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .tab {
       appearance: none;
@@ -57,9 +77,13 @@
       flex-shrink: 0;
     }
     .tab.on {
-      color: var(--ink);
-      border-bottom-color: var(--accent);
+      color: var(--green);
+      border-bottom-color: var(--green);
       font-weight: 650;
+    }
+    .tab[data-tab="settings"].on {
+      color: var(--purple);
+      border-bottom-color: var(--purple);
     }
     main { padding: 22px 28px 72px; display: grid; gap: 28px; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
@@ -72,6 +96,30 @@
     }
     .stat b { display: block; font-size: 22px; letter-spacing: -0.03em; }
     .stat span { color: var(--muted); font-size: 13px; }
+    .stat.tone-keep { background: var(--green-soft); border-color: #b7e4cd; }
+    .stat.tone-keep b { color: var(--green); }
+    .stat.tone-spoken { background: var(--blue-soft); border-color: #c5d4ff; }
+    .stat.tone-spoken b { color: var(--blue); }
+    .stat.tone-cards { background: var(--orange-soft); border-color: #f7c9b4; }
+    .stat.tone-cards b { color: var(--orange); }
+    .stat.tone-groc { background: var(--lime-soft); border-color: #d4e6a3; }
+    .stat.tone-groc b { color: var(--lime); }
+    .stat.tone-gas { background: var(--amber-soft); border-color: #f3d59a; }
+    .stat.tone-gas b { color: var(--amber); }
+    .stat.tone-sent { background: var(--teal-soft); border-color: #b6e0ea; }
+    .stat.tone-sent b { color: var(--teal); }
+    .stat.tone-pay { background: var(--purple-soft); border-color: #d8c8f8; }
+    .stat.tone-pay b { color: var(--purple); }
+    .stat.tone-debt { background: var(--rose-soft); border-color: #f5c2cf; }
+    .stat.tone-debt b { color: var(--rose); }
+    .stat.tone-house { background: var(--blue-soft); border-color: #c5d4ff; }
+    .stat.tone-house b { color: var(--blue); }
+    .stat.tone-keep .meter i { background: var(--green); }
+    .stat.tone-spoken .meter i { background: var(--blue); }
+    .stat.tone-cards .meter i { background: var(--orange); }
+    .stat.tone-groc .meter i { background: var(--lime); }
+    .stat.tone-gas .meter i { background: var(--amber); }
+    .stat.tone-sent .meter i { background: var(--teal); }
     .meter { height: 6px; background: #e6e8ee; border-radius: 99px; margin-top: 10px; overflow: hidden; }
     .meter i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
     .meter.warn i { background: var(--warn); }
@@ -81,8 +129,8 @@
       grid-template-columns: auto 1fr;
       gap: 18px 28px;
       align-items: center;
-      background: var(--soft);
-      border: 1px solid var(--line);
+      background: var(--green-soft);
+      border: 1px solid #b7e4cd;
       border-radius: 16px;
       padding: 16px 20px;
     }
@@ -100,7 +148,7 @@
     }
     .pie-hole b { font-size: 18px; letter-spacing: -0.03em; line-height: 1.1; }
     .pie-hole span { color: var(--muted); font-size: 12px; }
-    .pie-copy h3 { margin: 0 0 4px; }
+    .pie-copy h3 { margin: 0 0 4px; color: var(--green); }
     .pie-legend { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
     .pie-legend li {
       display: grid;
@@ -110,9 +158,9 @@
       font-size: 14px;
     }
     .pie-legend i { width: 10px; height: 10px; border-radius: 99px; display: block; }
-    .pie-legend em { color: var(--muted); font-style: normal; font-size: 13px; font-variant-numeric: tabular-nums; }
+    .pie-legend em { color: var(--green); font-style: normal; font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
     .month-bar { display: flex; align-items: baseline; gap: 12px; }
-    .month-bar h2 { margin: 0; }
+    .month-bar h2 { margin: 0; color: var(--blue); }
     .month-bar select { width: auto; }
     .summary {
       display: flex;
@@ -120,13 +168,19 @@
       align-items: baseline;
       gap: 8px 28px;
       padding: 18px 20px;
-      background: var(--soft);
-      border: 1px solid var(--line);
+      background: var(--green-soft);
+      border: 1px solid #b7e4cd;
       border-radius: 16px;
     }
     .big { font-size: 40px; font-weight: 750; letter-spacing: -0.05em; line-height: 1; }
     .meta { color: var(--muted); font-size: 14px; }
-    .who { font-weight: 650; }
+    .meta.got { color: var(--green); font-weight: 650; }
+    .meta.send { color: var(--rose); font-weight: 650; }
+    .meta.pend { color: var(--amber); font-weight: 650; }
+    .who { font-weight: 650; color: var(--blue); }
+    .pack-before .who { color: var(--rose); }
+    .tone-cards .who, .tone-cards .big { color: var(--orange); }
+    .tone-plan .who { color: var(--purple); }
     .sheet { display: grid; gap: 10px; }
     .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .sheet-head h2 { margin: 0; }
@@ -137,6 +191,12 @@
       border-radius: 16px;
       padding: 16px 18px;
     }
+    .next-grid .pay-card { background: var(--blue-soft); border-color: #c5d4ff; }
+    .next-grid .pay-card .meta:first-child,
+    .next-grid .pay-card .big { color: var(--blue); }
+    .next-grid .bill-card { background: var(--amber-soft); border-color: #f3d59a; }
+    .next-grid .bill-card .meta:first-child,
+    .next-grid .bill-card .big { color: var(--amber); }
     .pack { padding: 14px 0; border-top: 1px solid var(--line); }
     .pack:first-child { border-top: 0; }
     .pack ul { margin: 8px 0 0; padding-left: 18px; }
@@ -160,22 +220,50 @@
     .good { color: var(--accent); }
     .bad { color: var(--bad); }
     .warn { color: var(--warn); }
-    h2 { margin: 0 0 8px; font-size: 18px; letter-spacing: -0.02em; }
-    h3 { margin: 0 0 10px; font-size: 15px; }
-    .caption { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+    h2 { margin: 0 0 8px; font-size: 18px; letter-spacing: -0.02em; color: var(--green); }
+    h3 { margin: 0 0 10px; font-size: 15px; color: var(--teal); }
+    .tone-in h2 { color: var(--green); }
+    .tone-out h2 { color: var(--rose); }
+    .tone-cards h2, .tone-cards h3 { color: var(--orange); }
+    .tone-plan h2 { color: var(--purple); }
+    .tone-pay h2, .tone-pay h3 { color: var(--blue); }
+    .tone-groc h2, .tone-groc h3 { color: var(--lime); }
+    .tone-gas h2, .tone-gas h3 { color: var(--amber); }
+    .tone-car h2, .tone-car h3 { color: var(--teal); }
+    .tone-house h2, .tone-house h3 { color: var(--blue); }
+    .tone-util h2, .tone-util h3 { color: var(--purple); }
+    .tone-debt h2, .tone-debt h3 { color: var(--rose); }
+    .tone-loan h2, .tone-loan h3 { color: #9a3412; }
+    .tone-personal h2, .tone-personal h3 { color: #475569; }
+    .tone-backup h2, .tone-backup h3 { color: var(--teal); }
+    .tone-keys h2, .tone-keys h3 { color: var(--purple); }
+    .tone-coach h2 { color: var(--purple); }
+    .caption { color: #5a6b7a; font-size: 13px; margin: 0 0 12px; }
     .card {
       background: #fff;
       border: 1px solid var(--line);
       border-radius: 16px;
       padding: 16px;
     }
+    .card.tone-pay { background: var(--blue-soft); border-color: #c5d4ff; }
+    .card.tone-backup { background: var(--teal-soft); border-color: #b6e0ea; }
+    .card.tone-keys { background: var(--purple-soft); border-color: #d8c8f8; }
+    .card.tone-house { background: var(--blue-soft); border-color: #c5d4ff; }
+    .card.tone-util { background: var(--purple-soft); border-color: #d8c8f8; }
+    .card.tone-groc { background: var(--lime-soft); border-color: #d4e6a3; }
+    .card.tone-cards { background: var(--orange-soft); border-color: #f7c9b4; }
+    .card.tone-debt { background: var(--rose-soft); border-color: #f5c2cf; }
+    .card.tone-car { background: var(--teal-soft); border-color: #b6e0ea; }
+    .card.tone-gas { background: var(--amber-soft); border-color: #f3d59a; }
+    .card.tone-loan { background: #fff4ed; border-color: #f3c9a8; }
+    .card.tone-personal { background: #f3f4f6; border-color: #d5d8de; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; align-items: start; }
     table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); }
     th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
-    th { color: var(--muted); font-weight: 600; font-size: 12px; }
+    th { color: var(--teal); font-weight: 600; font-size: 12px; }
     .num { text-align: right; font-variant-numeric: tabular-nums; }
     tr.done td { color: var(--muted); }
-    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    label { display: block; font-size: 12px; color: var(--teal); font-weight: 650; margin-bottom: 4px; }
     input, select, button { font: inherit; color: var(--ink); }
     input, select, textarea {
       width: 100%;
@@ -187,8 +275,8 @@
     }
     textarea { min-height: 72px; resize: vertical; }
     button {
-      border: 1px solid var(--ink);
-      background: var(--ink);
+      border: 1px solid var(--green);
+      background: var(--green);
       color: #fff;
       padding: 10px 14px;
       cursor: pointer;
@@ -198,9 +286,23 @@
     }
     button.ghost {
       background: #fff;
-      color: var(--ink);
-      border-color: var(--line);
+      color: var(--blue);
+      border-color: #c5d4ff;
     }
+    .tone-in button.ghost { color: var(--green); border-color: #b7e4cd; }
+    .tone-out button.ghost { color: var(--rose); border-color: #f3c0cc; }
+    .tone-cards button.ghost { color: var(--orange); border-color: #f7c9b4; }
+    .tone-groc button.ghost { color: var(--lime); border-color: #d4e6a3; }
+    .tone-gas button.ghost { color: var(--amber); border-color: #f3d59a; }
+    .tone-car button.ghost { color: var(--teal); border-color: #b6e0ea; }
+    .tone-house button.ghost { color: var(--blue); border-color: #c5d4ff; }
+    .tone-util button.ghost { color: var(--purple); border-color: #d8c8f8; }
+    .tone-debt button.ghost { color: var(--rose); border-color: #f5c2cf; }
+    .tone-loan button.ghost { color: #9a3412; border-color: #f3c9a8; }
+    .tone-personal button.ghost { color: #475569; border-color: #d5d8de; }
+    .tone-backup button.ghost { color: var(--teal); border-color: #b6e0ea; }
+    .tone-keys button.ghost { color: var(--purple); border-color: #d8c8f8; }
+    .tone-coach button.ghost { color: var(--purple); border-color: #d8c8f8; }
     .row { display: grid; gap: 8px; align-items: end; margin-bottom: 8px; }
     .pay-row { grid-template-columns: 1fr 1fr auto; }
     .bill-row { grid-template-columns: 1.2fr 1fr 80px auto auto; }
@@ -251,16 +353,16 @@
       padding: 12px 12px 10px;
     }
     .chat-insights {
-      background: var(--soft);
-      border: 1px solid var(--line);
+      background: var(--purple-soft);
+      border: 1px solid #d8c8f8;
       border-radius: 14px;
       padding: 10px 12px;
       font-size: 13px;
       max-height: 28vh;
       overflow-y: auto;
     }
-    .chat-insights .who { margin-bottom: 4px; color: var(--accent-ink); }
-    .chat-insights .nudge { font-weight: 750; font-size: 15px; margin: 0 0 8px; }
+    .chat-insights .who { margin-bottom: 4px; color: var(--purple); }
+    .chat-insights .nudge { font-weight: 750; font-size: 15px; margin: 0 0 8px; color: var(--green); }
     .chat-insights a { color: var(--accent-ink); font-weight: 650; }
     .offer { margin: 6px 0 0; padding-top: 6px; border-top: 1px dashed var(--line); }
     .bubble.act { color: var(--accent); font-size: 13px; }
@@ -292,10 +394,10 @@
       border-radius: 14px;
       min-height: 52px;
       padding: 10px 20px;
-      background: var(--ink);
-      border-color: var(--ink);
+      background: linear-gradient(135deg, #0f8f5b, #1d4ed8);
+      border-color: transparent;
       color: #fff;
-      box-shadow: 0 10px 24px rgba(17, 24, 39, 0.16);
+      box-shadow: 0 10px 24px rgba(29, 78, 216, 0.22);
     }
     .key-row { grid-template-columns: 1fr 1.4fr 110px auto auto; }
     .api-status { font-size: 12px; }
@@ -360,24 +462,24 @@
       <div id="hero" class="summary"></div>
       <div id="metrics" class="stats"></div>
       <div id="pieChart" class="pie-card"></div>
-      <div class="sheet">
+      <div class="sheet tone-cards">
         <h2>Credit cards to 30%</h2>
         <p class="caption">This is the extra you send so used credit drops to 30% of the limit. It is not the minimum due.</p>
         <div id="cardTarget"></div>
       </div>
-      <div class="sheet">
+      <div class="sheet tone-plan">
         <h2>What to pay from each paycheck</h2>
         <p class="caption">Main job is the 5th and 20th. Second job is biweekly: start at Oct 2, then add 14 days — Oct 16, Oct 30, Nov 13, and so on. Each bill is paid from the latest check on or before that date.</p>
         <div id="plan"></div>
       </div>
-      <div class="sheet">
+      <div class="sheet tone-in">
         <div class="sheet-head">
           <h2>In</h2>
           <button type="button" class="ghost" id="addPaycheck">Add paycheck</button>
         </div>
         <div id="paychecks"></div>
       </div>
-      <div class="sheet">
+      <div class="sheet tone-out">
         <div class="sheet-head">
           <h2>Out</h2>
           <div class="toolbar">
@@ -393,12 +495,12 @@
 
     <section id="view-settings" class="hidden">
       <div class="stats" id="debtHero"></div>
-      <div class="section card">
+      <div class="section card tone-pay">
         <h3 style="margin:0">Paydays — these stay fixed</h3>
         <p class="caption">Main job: 5th and 20th every month. Second job: biweekly from October 2 (Oct 2 + 14 = Oct 16, then Oct 30, Nov 13…).</p>
       </div>
 
-      <div class="section card">
+      <div class="section card tone-backup">
         <h3 style="margin:0">Backup</h3>
         <p class="caption">Google Drive is the right place to keep this file — not a live hook inside the app. Download a JSON, drop it in Drive. To come back, Restore that file. That works on localhost, your phone, and Cloudflare without Google OAuth keys.</p>
         <div class="toolbar">
@@ -409,7 +511,7 @@
         <p class="caption" id="backupStatus" style="margin:10px 0 0"></p>
       </div>
 
-      <div class="section card">
+      <div class="section card tone-keys">
         <div class="toolbar">
           <h3 style="margin:0">Claude API keys</h3>
           <button type="button" class="ghost" id="addApiKey">Add API key</button>
@@ -423,7 +525,7 @@
       </div>
       <p class="caption">Fixed bills need a monthly amount here. Extra sends are typed on This month by date. Amount left drops when you mark Sent.</p>
 
-      <div class="section card">
+      <div class="section card tone-house">
         <div class="toolbar">
           <h3 style="margin:0">Rent and housing</h3>
           <button type="button" class="ghost" data-add="rent">Add rent or housing</button>
@@ -431,7 +533,7 @@
         <div id="rent"></div>
       </div>
 
-      <div class="section card">
+      <div class="section card tone-util">
         <div class="toolbar">
           <h3 style="margin:0">Utilities</h3>
           <button type="button" class="ghost" data-add="utilities">Add utility</button>
@@ -439,7 +541,7 @@
         <div id="utilities"></div>
       </div>
 
-      <div class="section card">
+      <div class="section card tone-groc">
         <h3 style="margin:0">Groceries</h3>
         <p class="caption">Saturdays are shopping days, not five locked $50 bills. This number is room you can spend if you need it. Type the real trip on This month — spend as little as you can. Blank Saturdays do not come out of a paycheck.</p>
         <div class="row" style="grid-template-columns: 200px; max-width: 220px">
@@ -450,7 +552,7 @@
         </div>
       </div>
 
-      <div class="section card">
+      <div class="section card tone-cards">
         <div class="toolbar">
           <h3 style="margin:0">Credit cards</h3>
           <button type="button" class="ghost" data-add="creditCards">Add card</button>
@@ -459,7 +561,7 @@
         <div id="creditCards"></div>
       </div>
 
-      <div class="section card">
+      <div class="section card tone-debt">
         <div class="toolbar">
           <h3 style="margin:0">Student loans</h3>
           <button type="button" class="ghost" data-add="studentLoans">Add student loan</button>
@@ -468,7 +570,7 @@
         <div id="studentLoans"></div>
       </div>
 
-      <div class="section card">
+      <div class="section card tone-car">
         <div class="toolbar">
           <h3 style="margin:0">Car insurance</h3>
           <button type="button" class="ghost" data-add="carInsurance">Add car insurance</button>
@@ -477,7 +579,7 @@
         <div id="carInsurance"></div>
       </div>
 
-      <div class="section card">
+      <div class="section card tone-gas">
         <h3 style="margin:0">Gas</h3>
         <p class="caption">This is room per fill, not a locked weekly bill. Add a fill on This month when you actually pump. Spend under this if you can.</p>
         <div class="row" style="grid-template-columns: 200px; max-width: 220px">
@@ -488,7 +590,7 @@
         </div>
       </div>
 
-      <div class="section card">
+      <div class="section card tone-car">
         <div class="toolbar">
           <h3 style="margin:0">Car finance</h3>
           <button type="button" class="ghost" data-add="carFinance">Add car loan</button>
@@ -497,7 +599,7 @@
         <div id="carFinance"></div>
       </div>
 
-      <div class="section card">
+      <div class="section card tone-loan">
         <div class="toolbar">
           <h3 style="margin:0">Other loans</h3>
           <button type="button" class="ghost" data-add="otherLoans">Add loan</button>
@@ -505,7 +607,7 @@
         <div id="otherLoans"></div>
       </div>
 
-      <div class="section card">
+      <div class="section card tone-personal">
         <div class="toolbar">
           <h3 style="margin:0">Personal payments</h3>
           <button type="button" class="ghost" data-add="personal">Add personal payment</button>
@@ -514,7 +616,7 @@
         <div id="personal"></div>
       </div>
 
-      <div class="section">
+      <div class="section tone-debt">
         <h2>Payoff plans</h2>
         <p class="caption">Payoff uses the fixed Settings amount, or this month’s contribution if the loan is variable.</p>
         <div id="payoff" class="scroll"></div>
@@ -524,7 +626,7 @@
 
   <div id="chatDock" class="chat-dock">
     <div class="chat-panel" id="chatPanel">
-      <div class="sheet-head">
+      <div class="sheet-head tone-coach">
         <h2>Coach</h2>
         <div class="toolbar">
           <select id="chatModel"></select>
@@ -1124,9 +1226,9 @@
       const nextDate = (pending.find((item) => item.date >= today) || pending[0])?.date;
       const upcomingBills = nextDate ? pending.filter((item) => item.date === nextDate) : [];
       const checkHtml = upcomingCheck
-        ? `<div><div class="meta">Next paycheck</div><div class="big">${prettyDate(upcomingCheck.date)}</div><div class="meta">${upcomingCheck.source || "Paycheck"}${upcomingCheck.amount ? " · " + money(upcomingCheck.amount) : " · enter the amount below"}</div></div>`
-        : `<div><div class="meta">Next paycheck</div><div class="caption">No paycheck dates this month.</div></div>`;
-      let billHtml = `<div><div class="meta">Next payment to make</div><div class="caption">Nothing pending.</div></div>`;
+        ? `<div class="pay-card"><div class="meta">Next paycheck</div><div class="big">${prettyDate(upcomingCheck.date)}</div><div class="meta">${upcomingCheck.source || "Paycheck"}${upcomingCheck.amount ? " · " + money(upcomingCheck.amount) : " · enter the amount below"}</div></div>`
+        : `<div class="pay-card"><div class="meta">Next paycheck</div><div class="caption">No paycheck dates this month.</div></div>`;
+      let billHtml = `<div class="bill-card"><div class="meta">Next payment to make</div><div class="caption">Nothing pending.</div></div>`;
       if (upcomingBills.length) {
         const sample = upcomingBills[0];
         const host = groups.find((g) => g.items.includes(sample));
@@ -1134,7 +1236,7 @@
           ? `Pay this from the ${prettyDate(host.date)} ${host.source || "paycheck"}`
           : `This is due before your first paycheck. Use cash on hand.`;
         const names = upcomingBills.map((row) => `${escapeHtml(row.name)} · ${money(row.amount)}`).join("<br>");
-        billHtml = `<div><div class="meta">Next payment to make</div><div class="big">${prettyDate(sample.date)}</div><div class="meta">${names}</div><div class="caption">${from}</div></div>`;
+        billHtml = `<div class="bill-card"><div class="meta">Next payment to make</div><div class="big">${prettyDate(sample.date)}</div><div class="meta">${names}</div><div class="caption">${from}</div></div>`;
       }
       document.getElementById("nextUp").innerHTML = checkHtml + billHtml;
     }
@@ -1145,7 +1247,7 @@
         const total = before.reduce((sum, row) => sum + num(row.amount), 0);
         const firstPay = groups[0]?.date;
         const beforeLabel = firstPay ? prettyDate(firstPay) : "the first paycheck";
-        html += `<div class="pack">
+        html += `<div class="pack pack-before">
           <div class="who">Before the first paycheck</div>
           <div class="caption">Due before ${beforeLabel}. Use cash already on hand — this is not coming from the next check.</div>
           <ul>${before.map((row) => `<li>${prettyDate(row.date)} · ${escapeHtml(row.name)} · ${money(row.amount)}</li>`).join("")}</ul>
@@ -1175,9 +1277,9 @@
           <div class="big ${short ? "bad" : "good"}">${money(Math.max(0, spend))}</div>
           <div class="meta">${short ? "Short " + money(-spend) : "You can spend"}</div>
         </div>
-        <div class="meta">Got ${money(received)}</div>
-        <div class="meta">Send ${money(planned)}</div>
-        <div class="meta ${pending > 0 ? "warn" : ""}">Pending ${money(pending)}</div>
+        <div class="meta got">Got ${money(received)}</div>
+        <div class="meta send">Send ${money(planned)}</div>
+        <div class="meta pend">Pending ${money(pending)}</div>
       `;
       renderMetrics();
       renderPie();
@@ -1218,41 +1320,41 @@
         return `<div class="meter ${cls}"><i style="width:${width}%"></i></div>`;
       };
       el.innerHTML = `
-        <div class="stat">
+        <div class="stat tone-keep">
           <b class="${spend < 0 ? "bad" : "good"}">${keepPct == null ? "—" : keepPct + "%"}</b>
           <span>Left after planned bills</span>
           ${bar(keepPct == null ? 0 : Math.max(0, keepPct), spend < 0 ? "bad" : "")}
         </div>
-        <div class="stat">
+        <div class="stat tone-spoken">
           <b>${spokenPct == null ? "—" : spokenPct + "%"}</b>
           <span>Paychecks already spoken for</span>
           ${bar(spokenPct, spokenPct != null && spokenPct > 100 ? "bad" : spokenPct >= 85 ? "warn" : "")}
         </div>
-        <div class="stat">
+        <div class="stat tone-cards">
           <b class="${utilPct == null ? "" : utilPct >= 70 ? "bad" : utilPct >= 30 ? "warn" : "good"}">${utilPct == null ? "—" : utilPct + "%"}</b>
           <span>Cards used${limit ? " of " + money(limit) : " — add a limit"}</span>
           ${bar(utilPct, utilPct == null ? "" : utilPct >= 70 ? "bad" : utilPct >= 30 ? "warn" : "")}
         </div>
-        <div class="stat">
+        <div class="stat tone-groc">
           <b>${grocPct == null ? "—" : grocPct + "%"}</b>
           <span>Grocery room used · ${money(grocUsed)}</span>
           ${bar(grocPct, grocPct != null && grocPct > 100 ? "bad" : "")}
         </div>
-        <div class="stat">
+        <div class="stat tone-gas">
           <b>${money(gasUsed)}</b>
           <span>Gas this month · room ${money(num(state.settings.gasRoom))} / fill</span>
           ${bar(num(state.settings.gasRoom) ? Math.round((gasUsed / Math.max(num(state.settings.gasRoom), 0.01)) * 100) : 0)}
         </div>
-        <div class="stat">
+        <div class="stat tone-sent">
           <b>${paidPct}%</b>
           <span>Out marked Sent · ${money(pending)} still open</span>
           ${bar(paidPct)}
         </div>
-        <div class="stat">
+        <div class="stat tone-pay">
           <b>${wait == null ? "—" : wait}</b>
           <span>${wait == null ? "No upcoming paycheck" : wait === 0 ? "Paycheck today" : "Days to next paycheck"}</span>
         </div>
-        <div class="stat">
+        <div class="stat tone-debt">
           <b>${money(debt)}</b>
           <span>Still on loans and cards</span>
         </div>
@@ -2194,10 +2296,10 @@
         .reduce((sum, b) => sum + num(b.amount), 0);
       const plannedAll = monthTotals().planned;
       document.getElementById("debtHero").innerHTML = `
-        <div class="stat"><b>${money(totalLeft)}</b><span>Still owed on loans, cards, and personal</span></div>
-        <div class="stat"><b>${money(housing)}</b><span>Rent and utilities</span></div>
-        <div class="stat"><b>${money(plannedDebt)}</b><span>Debt contributions this month</span></div>
-        <div class="stat"><b>${money(plannedAll)}</b><span>All contributions this month</span></div>
+        <div class="stat tone-debt"><b>${money(totalLeft)}</b><span>Still owed on loans, cards, and personal</span></div>
+        <div class="stat tone-house"><b>${money(housing)}</b><span>Rent and utilities</span></div>
+        <div class="stat tone-cards"><b>${money(plannedDebt)}</b><span>Debt contributions this month</span></div>
+        <div class="stat tone-keep"><b>${money(plannedAll)}</b><span>All contributions this month</span></div>
       `;
       if (!debts.length) {
         document.getElementById("payoff").innerHTML = `<p class="empty">Add a card or loan to see a payoff plan.</p>`;

@@ -376,10 +376,12 @@
     .empty { color: var(--muted); font-size: 14px; }
     .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     main { padding-bottom: 40px; }
+    body.chat-open { overflow: hidden; }
     .chat-dock {
       position: fixed;
       right: 16px;
-      bottom: calc(16px + env(safe-area-inset-bottom));
+      /* --kb tracks the on-screen keyboard so the compose box stays visible. */
+      bottom: calc(16px + var(--kb, 0px) + env(safe-area-inset-bottom));
       z-index: 40;
       display: flex;
       flex-direction: column;
@@ -389,11 +391,12 @@
       pointer-events: none;
     }
     .chat-dock > * { pointer-events: auto; }
+    /* Flex, not grid: the status lines collapse when empty and would shift grid rows. */
     .chat-panel {
       width: 100%;
       max-height: min(80vh, 760px);
       display: none;
-      grid-template-rows: auto auto minmax(0, auto) auto minmax(60px, 1fr) auto;
+      flex-direction: column;
       gap: 8px;
       overflow: hidden;
       background: #fff;
@@ -402,7 +405,7 @@
       box-shadow: 0 16px 40px rgba(17, 24, 39, 0.12);
       padding: 12px;
     }
-    .chat-panel > * { min-width: 0; }
+    .chat-panel > * { min-width: 0; flex: 0 0 auto; }
     .chat-head {
       display: grid;
       grid-template-columns: auto minmax(0, 1fr) auto;
@@ -433,7 +436,25 @@
       font-size: 13px;
       max-height: 28vh;
       overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      flex: 0 0 auto;
     }
+    .chat-insights[open] { flex: 0 1 auto; }
+    .chat-insights summary {
+      cursor: pointer;
+      font-weight: 650;
+      color: var(--violet);
+      list-style: none;
+      min-height: 24px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .chat-insights summary::-webkit-details-marker { display: none; }
+    .chat-insights summary::after { content: "▾"; font-size: 11px; }
+    .chat-insights:not([open]) summary::after { content: "▸"; }
+    .chat-insights[open] summary { margin-bottom: 6px; }
     .chat-insights .who { margin-bottom: 6px; color: var(--violet); }
     .chat-insights .facts { display: grid; gap: 3px; }
     .chat-insights .facts span { color: var(--muted); }
@@ -442,13 +463,16 @@
     .chat-state { margin: 0; font-size: 12px; color: var(--muted); }
     .offer { margin: 6px 0 0; padding-top: 6px; border-top: 1px dashed var(--line); }
     .bubble.act { color: var(--accent); font-size: 13px; }
-    .chat-dock.open .chat-panel { display: grid; }
+    .chat-dock.open .chat-panel { display: flex; }
     .chat-log {
       display: grid;
       align-content: start;
       gap: 10px;
-      min-height: 0;
+      flex: 1 1 auto;
+      min-height: 72px;
       overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
       padding: 4px 2px;
     }
     .bubble {
@@ -531,7 +555,7 @@
         align-items: stretch;
       }
       #chatToggle { width: auto; justify-self: end; }
-      .chat-panel { max-height: min(78dvh, 720px); }
+      .chat-panel { max-height: calc(100dvh - var(--kb, 0px) - 120px); }
       .chat-insights { max-height: 30dvh; }
       .bubble.me { margin-left: 8%; }
       .out-row {
@@ -647,13 +671,47 @@
 
       <div class="section card tone-backup">
         <h3 style="margin:0">Backup</h3>
-        <p class="caption">Google Drive is the right place to keep this file — not a live hook inside the app. Download a JSON, drop it in Drive. To come back, Restore that file. That works on localhost, your phone, and Cloudflare without Google OAuth keys.</p>
+        <p class="caption">A one-off copy you can keep anywhere. Download the JSON, and Restore it to come back. The two options below keep a copy saving itself.</p>
         <div class="toolbar">
           <button type="button" id="backupDownload">Download backup</button>
           <button type="button" class="ghost" id="backupRestore">Restore from file</button>
           <input id="backupFile" type="file" accept="application/json,.json" class="hidden" />
         </div>
         <p class="caption" id="backupStatus" style="margin:10px 0 0"></p>
+
+        <h3 style="margin:18px 0 0">Auto-save into your Drive folder</h3>
+        <p class="caption">On a computer with Google Drive for Desktop, pick one file inside your Drive folder. Every change writes straight to it and Drive syncs it up. No Google sign-in, no keys.</p>
+        <div class="toolbar">
+          <button type="button" class="ghost" id="autoFilePick">Choose the file</button>
+          <button type="button" class="ghost" id="autoFileStop">Stop auto-save</button>
+        </div>
+        <p class="caption" id="autoFileStatus" style="margin:10px 0 0"></p>
+
+        <h3 style="margin:18px 0 0">Google Drive sync (works on your phone)</h3>
+        <p class="caption">Upload the same backup straight to Drive. This needs a free OAuth client ID from console.cloud.google.com — see the steps under the box.</p>
+        <div class="row">
+          <div>
+            <label>Google OAuth client ID</label>
+            <input id="driveClientId" autocomplete="off" placeholder="1234-abc.apps.googleusercontent.com" />
+          </div>
+          <div class="field-actions">
+            <button type="button" class="ghost" id="driveConnect">Connect Drive</button>
+            <button type="button" class="ghost" id="driveBackupNow">Back up now</button>
+          </div>
+        </div>
+        <label class="sent-check" style="margin-top:8px"><input type="checkbox" id="driveAuto" /> Upload after every change</label>
+        <p class="caption" id="driveStatus" style="margin:10px 0 0"></p>
+        <details class="card" style="margin-top:12px; border-left-width:1px">
+          <summary style="cursor:pointer; font-weight:650">How to get the client ID</summary>
+          <ol class="caption" style="margin:10px 0 0; padding-left:18px">
+            <li>Open console.cloud.google.com and make a project.</li>
+            <li>APIs &amp; Services → Library → enable <b>Google Drive API</b>.</li>
+            <li>APIs &amp; Services → OAuth consent screen → External → add yourself under Test users.</li>
+            <li>Credentials → Create credentials → <b>OAuth client ID</b> → Web application.</li>
+            <li>Under Authorised JavaScript origins add <b>http://127.0.0.1:5173</b> and your Cloudflare URL.</li>
+            <li>Copy the client ID into the box above and tap Connect Drive.</li>
+          </ol>
+        </details>
       </div>
 
       <div class="section card tone-keys">
@@ -797,7 +855,10 @@
         <button type="button" class="ghost" id="adviceRefresh">Refresh</button>
       </div>
       <p class="chat-state" id="chatKeyStatus">Claude runs only when you open the app, change something, or tap Refresh — not in the background.</p>
-      <div id="chatInsights" class="chat-insights"></div>
+      <details id="chatInsights" class="chat-insights">
+        <summary>This month at a glance</summary>
+        <div id="chatFacts"></div>
+      </details>
       <p class="chat-state" id="chatState"></p>
       <div id="chatLog" class="chat-log"></div>
       <form id="chatForm" class="chat-compose">
@@ -865,6 +926,7 @@
         biweeklyStart: "2026-10-02",
         claude: { model: "claude-sonnet-4-6", keys: [] },
         bible: { appKey: "", versionId: 3034, show: true },
+        drive: { clientId: "", fileId: "", auto: true },
       },
       chat: { messages: [] },
       verse: null,
@@ -936,6 +998,7 @@
     let adviceBusy = false;
     function save(mode) {
       localStorage.setItem(KEY, JSON.stringify(state));
+      if (typeof queueAutoBackup === "function") queueAutoBackup();
       if (mode !== "quiet") scheduleAdvice();
     }
     function scheduleAdvice() {
@@ -2335,7 +2398,7 @@
       return { ok: false, error: "Unknown tool " + name };
     }
     function renderInsights() {
-      const el = document.getElementById("chatInsights");
+      const el = document.getElementById("chatFacts");
       if (!el) return;
       const { received, planned, spend } = monthTotals();
       const { before, groups } = paycheckPlan();
@@ -2354,7 +2417,6 @@
       const grocUsed = weeks.reduce((sum, g) => sum + num(g.amount), 0);
       const gasUsed = (monthState().gasFills || []).reduce((sum, g) => sum + num(g.amount), 0);
       el.innerHTML = `
-        <div class="who">This month at a glance</div>
         <div class="facts">
           <div><span>In</span> ${money(received)} · <span>out</span> ${money(planned)} · <span>${spend < 0 ? "short" : "left"}</span> ${money(Math.abs(spend))}</div>
           <div><span>Next check</span> ${nextCheck ? prettyDate(nextCheck.date) + (nextCheck.amount ? " · " + money(nextCheck.amount) : "") : "none set"}</div>
@@ -2628,8 +2690,244 @@
       if (!el) return;
       const at = state.settings.lastBackupAt;
       el.textContent = at
-        ? "Last download " + new Date(at).toLocaleString() + ". Put that file in Google Drive."
+        ? "Last download " + new Date(at).toLocaleString() + "."
         : "No backup downloaded yet on this browser.";
+    }
+
+    /* ---- Auto-backup: a live local file plus optional Google Drive ---- */
+    const BACKUP_META = "personal-budget-backup-meta";
+    const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+    const AUTO_DELAY = 1500;
+    let autoTimer = null;
+    let backupFileHandle = null;
+    let driveToken = "";
+    let driveTokenExpires = 0;
+
+    function backupMeta() {
+      try {
+        return JSON.parse(localStorage.getItem(BACKUP_META) || "{}");
+      } catch {
+        return {};
+      }
+    }
+    // Kept out of `state` so writing it cannot retrigger a save.
+    function setBackupMeta(patch) {
+      localStorage.setItem(BACKUP_META, JSON.stringify({ ...backupMeta(), ...patch }));
+      renderAutoBackup();
+    }
+    function backupPayload() {
+      return JSON.stringify({ version: 2, exportedAt: new Date().toISOString(), state }, null, 2);
+    }
+    function whenText(at) {
+      return at ? new Date(at).toLocaleString() : "";
+    }
+
+    function handleStore(mode) {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open("budget-backup", 1);
+        req.onupgradeneeded = () => req.result.createObjectStore("handles");
+        req.onerror = () => reject(req.error);
+        req.onsuccess = () => {
+          const tx = req.result.transaction("handles", mode);
+          resolve(tx.objectStore("handles"));
+        };
+      });
+    }
+    async function saveHandle(handle) {
+      const store = await handleStore("readwrite");
+      return new Promise((resolve, reject) => {
+        const req = store.put(handle, "backup");
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+    async function readHandle() {
+      const store = await handleStore("readonly");
+      return new Promise((resolve) => {
+        const req = store.get("backup");
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      });
+    }
+    async function clearHandle() {
+      const store = await handleStore("readwrite");
+      store.delete("backup");
+    }
+
+    function filePickerSupported() {
+      return typeof window.showSaveFilePicker === "function";
+    }
+    async function pickBackupFile() {
+      if (!filePickerSupported()) {
+        setBackupMeta({ fileError: "This browser cannot auto-save to a file. Use Chrome or Edge on a computer." });
+        return;
+      }
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: "personal-budget.json",
+          types: [{ description: "Budget backup", accept: { "application/json": [".json"] } }],
+        });
+        backupFileHandle = handle;
+        setBackupMeta({ fileName: handle.name, fileError: "" });
+        await writeFileBackup();
+        // Remembering the file is a bonus; losing it must not stop this session's backups.
+        try {
+          await saveHandle(handle);
+        } catch {
+          setBackupMeta({ fileError: "Saving now, but this browser will ask for the file again after a reload." });
+        }
+      } catch (err) {
+        if (err && err.name === "AbortError") return;
+        setBackupMeta({ fileError: err.message || "Could not open that file." });
+      }
+    }
+    async function stopFileBackup() {
+      backupFileHandle = null;
+      await clearHandle();
+      setBackupMeta({ fileName: "", fileAt: 0, fileError: "" });
+    }
+    async function writeFileBackup() {
+      if (!backupFileHandle) return;
+      try {
+        const perm = await backupFileHandle.queryPermission({ mode: "readwrite" });
+        if (perm !== "granted") {
+          setBackupMeta({ fileError: "Auto-save is paused. Tap Choose the file to allow writing again." });
+          return;
+        }
+        const writable = await backupFileHandle.createWritable();
+        await writable.write(backupPayload());
+        await writable.close();
+        setBackupMeta({ fileAt: Date.now(), fileError: "" });
+      } catch (err) {
+        setBackupMeta({ fileError: err.message || "Could not write the backup file." });
+      }
+    }
+    async function restoreFileHandle() {
+      if (!filePickerSupported()) return;
+      const handle = await readHandle();
+      if (!handle) return;
+      backupFileHandle = handle;
+      const perm = await handle.queryPermission({ mode: "readwrite" });
+      setBackupMeta({
+        fileName: handle.name,
+        fileError: perm === "granted" ? "" : "Auto-save is paused until you allow writing again.",
+      });
+    }
+
+    function driveConf() {
+      if (!state.settings.drive) state.settings.drive = { clientId: "", fileId: "", auto: true };
+      return state.settings.drive;
+    }
+    function loadGoogleScript() {
+      if (window.google?.accounts?.oauth2) return Promise.resolve();
+      if (window.__gisLoading) return window.__gisLoading;
+      window.__gisLoading = new Promise((resolve, reject) => {
+        const tag = document.createElement("script");
+        tag.src = "https://accounts.google.com/gsi/client";
+        tag.async = true;
+        tag.onload = resolve;
+        tag.onerror = () => reject(new Error("Could not load Google sign-in."));
+        document.head.appendChild(tag);
+      });
+      return window.__gisLoading;
+    }
+    async function connectDrive(interactive) {
+      const clientId = driveConf().clientId.trim();
+      if (!clientId) throw new Error("Add your Google client ID first.");
+      await loadGoogleScript();
+      return new Promise((resolve, reject) => {
+        const client = window.google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: DRIVE_SCOPE,
+          callback: (resp) => {
+            if (resp.error) {
+              reject(new Error(resp.error_description || resp.error));
+              return;
+            }
+            driveToken = resp.access_token;
+            driveTokenExpires = Date.now() + (Number(resp.expires_in || 3600) - 60) * 1000;
+            resolve();
+          },
+          error_callback: (err) => reject(new Error(err.message || "Google sign-in was closed.")),
+        });
+        client.requestAccessToken({ prompt: interactive ? "consent" : "" });
+      });
+    }
+    async function driveUpload() {
+      const conf = driveConf();
+      if (!conf.clientId.trim()) return;
+      if (!driveToken || Date.now() > driveTokenExpires) await connectDrive(false);
+      const boundary = "budget" + Date.now();
+      const meta = { name: "personal-budget.json", mimeType: "application/json" };
+      const body =
+        `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n` +
+        `--${boundary}\r\nContent-Type: application/json\r\n\r\n${backupPayload()}\r\n--${boundary}--`;
+      const base = "https://www.googleapis.com/upload/drive/v3/files";
+      const url = conf.fileId
+        ? `${base}/${conf.fileId}?uploadType=multipart&fields=id`
+        : `${base}?uploadType=multipart&fields=id`;
+      const res = await fetch(url, {
+        method: conf.fileId ? "PATCH" : "POST",
+        headers: {
+          Authorization: `Bearer ${driveToken}`,
+          "Content-Type": `multipart/related; boundary=${boundary}`,
+        },
+        body,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        // A deleted file should not wedge every later upload.
+        if (res.status === 404 && conf.fileId) {
+          conf.fileId = "";
+          localStorage.setItem(KEY, JSON.stringify(state));
+        }
+        throw new Error(data?.error?.message || `Drive returned ${res.status}.`);
+      }
+      if (data.id && data.id !== conf.fileId) {
+        conf.fileId = data.id;
+        localStorage.setItem(KEY, JSON.stringify(state));
+      }
+      setBackupMeta({ driveAt: Date.now(), driveError: "" });
+    }
+    async function runDriveBackup(interactive) {
+      try {
+        if (interactive) await connectDrive(true);
+        await driveUpload();
+      } catch (err) {
+        setBackupMeta({ driveError: err.message || "Drive backup failed." });
+      }
+    }
+
+    function queueAutoBackup() {
+      clearTimeout(autoTimer);
+      autoTimer = setTimeout(async () => {
+        await writeFileBackup();
+        if (driveConf().auto && driveConf().clientId.trim() && driveToken) await runDriveBackup(false);
+      }, AUTO_DELAY);
+    }
+    function renderAutoBackup() {
+      const meta = backupMeta();
+      const fileEl = document.getElementById("autoFileStatus");
+      if (fileEl) {
+        if (meta.fileError) fileEl.textContent = meta.fileError;
+        else if (meta.fileName) {
+          fileEl.textContent = meta.fileAt
+            ? `Saving to ${meta.fileName} — last write ${whenText(meta.fileAt)}.`
+            : `Ready to save to ${meta.fileName}.`;
+        } else {
+          fileEl.textContent = filePickerSupported()
+            ? "Not set up. Pick a file inside your Google Drive folder."
+            : "This browser cannot auto-save to a file. Use Chrome or Edge on a computer, or use Drive sync below.";
+        }
+      }
+      const driveEl = document.getElementById("driveStatus");
+      if (driveEl) {
+        const conf = driveConf();
+        if (meta.driveError) driveEl.textContent = meta.driveError;
+        else if (!conf.clientId.trim()) driveEl.textContent = "No client ID yet, so Drive sync is off.";
+        else if (meta.driveAt) driveEl.textContent = `Last upload ${whenText(meta.driveAt)}.`;
+        else driveEl.textContent = "Client ID saved. Tap Connect Drive to sign in.";
+      }
     }
     function downloadBackup() {
       const payload = {
@@ -2890,6 +3188,19 @@
       save();
       renderMonth();
     });
+    document.getElementById("autoFilePick").addEventListener("click", pickBackupFile);
+    document.getElementById("autoFileStop").addEventListener("click", stopFileBackup);
+    document.getElementById("driveClientId").addEventListener("input", (e) => {
+      driveConf().clientId = e.target.value.trim();
+      save("quiet");
+      renderAutoBackup();
+    });
+    document.getElementById("driveAuto").addEventListener("change", (e) => {
+      driveConf().auto = e.target.checked;
+      save("quiet");
+    });
+    document.getElementById("driveConnect").addEventListener("click", () => runDriveBackup(true));
+    document.getElementById("driveBackupNow").addEventListener("click", () => runDriveBackup(false));
     document.getElementById("backupDownload").addEventListener("click", downloadBackup);
     document.getElementById("backupRestore").addEventListener("click", () => document.getElementById("backupFile").click());
     document.getElementById("backupFile").addEventListener("change", (e) => {
@@ -2970,12 +3281,26 @@
       input.value = "";
       sendChat(text);
     });
+    function trackKeyboard() {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      const gap = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      document.documentElement.style.setProperty("--kb", gap + "px");
+    }
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", trackKeyboard);
+      window.visualViewport.addEventListener("scroll", trackKeyboard);
+    }
     function setChatOpen(open) {
       document.getElementById("chatDock").classList.toggle("open", open);
+      document.body.classList.toggle("chat-open", open);
       document.getElementById("chatToggle").textContent = open ? "Close" : "Coach";
       if (open) {
         renderChat();
+        trackKeyboard();
         document.getElementById("chatInput").focus();
+      } else {
+        document.documentElement.style.setProperty("--kb", "0px");
       }
     }
     document.getElementById("chatToggle").addEventListener("click", () => {
@@ -3014,6 +3339,12 @@
     document.getElementById("bibleVersion").innerHTML = BIBLE_VERSIONS.map((v) =>
       `<option value="${v.id}" ${v.id === Number(bibleInit.versionId) ? "selected" : ""}>${escapeHtml(v.label)}</option>`
     ).join("");
+    document.getElementById("chatInsights").open = window.innerWidth > 720;
+    const driveInit = driveConf();
+    document.getElementById("driveClientId").value = driveInit.clientId || "";
+    document.getElementById("driveAuto").checked = driveInit.auto !== false;
+    restoreFileHandle().then(renderAutoBackup);
+    renderAutoBackup();
     renderPaychecks();
     renderMonth();
     renderChat();

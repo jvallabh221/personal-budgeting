@@ -112,7 +112,7 @@ function listen(port) {
   };
   const onListening = () => {
     server.removeListener("error", onError);
-    console.log(`Budget app at http://127.0.0.1:${port}/?v=31`);
+    console.log(`Budget app at http://127.0.0.1:${port}/?v=32`);
   };
   server.once("error", onError);
   server.once("listening", onListening);

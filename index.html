@@ -22,22 +22,18 @@
       --warn: #b45309;
       --bad: #dc2626;
       --pay: #1d4ed8;
+      /* Five accents carry meaning: money in, plan, flexible spend, money out, Coach. */
       --green: #0f8f5b;
-      --green-soft: #e8f8f0;
+      --green-soft: #eaf7f1;
       --blue: #1d4ed8;
-      --blue-soft: #e8efff;
-      --amber: #d97706;
-      --amber-soft: #fff4e0;
-      --lime: #4d7c0f;
-      --lime-soft: #f2f8e3;
-      --teal: #0e7490;
-      --teal-soft: #e4f6fa;
-      --orange: #c2410c;
-      --orange-soft: #ffeee6;
+      --blue-soft: #eef2ff;
+      --amber: #b45309;
+      --amber-soft: #fdf4e7;
       --rose: #be123c;
-      --rose-soft: #ffe8ee;
-      --purple: #6d28d9;
-      --purple-soft: #f1e9ff;
+      --rose-soft: #fdeef2;
+      --violet: #6d28d9;
+      --violet-soft: #f4efff;
+      --slate: #475569;
     }
     * { box-sizing: border-box; }
     html { -webkit-text-size-adjust: 100%; scroll-padding-top: 76px; }
@@ -57,14 +53,11 @@
     }
     header h1 {
       margin: 0 0 6px;
-      font-size: 30px;
-      letter-spacing: -0.04em;
-      background: linear-gradient(90deg, #0f8f5b 0%, #1d4ed8 52%, #6d28d9 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      font-size: 28px;
+      letter-spacing: -0.03em;
+      color: var(--ink);
     }
-    header p { margin: 0; color: #3f6b82; max-width: 70ch; }
+    header p { margin: 0; color: var(--muted); max-width: 70ch; }
     .navbar {
       position: sticky;
       top: 0;
@@ -84,22 +77,21 @@
       border: 1px solid var(--line);
       border-radius: 12px;
       color: var(--muted);
-      padding: 12px 16px;
+      padding: 0 12px;
       cursor: pointer;
       font: inherit;
-      min-height: 44px;
+      height: 44px;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       text-align: center;
     }
     .tab.on {
-      color: var(--green);
-      background: var(--green-soft);
-      border-color: #b7e4cd;
+      color: var(--ink);
+      background: #fff;
+      border-color: var(--ink);
       font-weight: 650;
-    }
-    .tab[data-tab="settings"].on {
-      color: var(--purple);
-      background: var(--purple-soft);
-      border-color: #d8c8f8;
     }
     main { padding: 22px 28px 72px; display: grid; gap: 28px; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
@@ -110,32 +102,17 @@
       border-radius: 16px;
       padding: 14px 16px;
     }
-    .stat b { display: block; font-size: 22px; letter-spacing: -0.03em; }
+    .stat b { display: block; font-size: 22px; letter-spacing: -0.03em; color: var(--ink); }
     .stat span { color: var(--muted); font-size: 13px; }
-    .stat.tone-keep { background: var(--green-soft); border-color: #b7e4cd; }
-    .stat.tone-keep b { color: var(--green); }
-    .stat.tone-spoken { background: var(--blue-soft); border-color: #c5d4ff; }
-    .stat.tone-spoken b { color: var(--blue); }
-    .stat.tone-cards { background: var(--orange-soft); border-color: #f7c9b4; }
-    .stat.tone-cards b { color: var(--orange); }
-    .stat.tone-groc { background: var(--lime-soft); border-color: #d4e6a3; }
-    .stat.tone-groc b { color: var(--lime); }
-    .stat.tone-gas { background: var(--amber-soft); border-color: #f3d59a; }
-    .stat.tone-gas b { color: var(--amber); }
-    .stat.tone-sent { background: var(--teal-soft); border-color: #b6e0ea; }
-    .stat.tone-sent b { color: var(--teal); }
-    .stat.tone-pay { background: var(--purple-soft); border-color: #d8c8f8; }
-    .stat.tone-pay b { color: var(--purple); }
-    .stat.tone-debt { background: var(--rose-soft); border-color: #f5c2cf; }
-    .stat.tone-debt b { color: var(--rose); }
-    .stat.tone-house { background: var(--blue-soft); border-color: #c5d4ff; }
-    .stat.tone-house b { color: var(--blue); }
+    .stat.tone-keep b, .stat.tone-keep .meter i { color: var(--green); background-color: initial; }
     .stat.tone-keep .meter i { background: var(--green); }
+    .stat.tone-spoken b, .stat.tone-pay b, .stat.tone-house b { color: var(--blue); }
     .stat.tone-spoken .meter i { background: var(--blue); }
-    .stat.tone-cards .meter i { background: var(--orange); }
-    .stat.tone-groc .meter i { background: var(--lime); }
-    .stat.tone-gas .meter i { background: var(--amber); }
-    .stat.tone-sent .meter i { background: var(--teal); }
+    .stat.tone-groc b, .stat.tone-gas b, .stat.tone-cards b { color: var(--amber); }
+    .stat.tone-groc .meter i, .stat.tone-gas .meter i, .stat.tone-cards .meter i { background: var(--amber); }
+    .stat.tone-sent b { color: var(--slate); }
+    .stat.tone-sent .meter i { background: var(--slate); }
+    .stat.tone-debt b { color: var(--rose); }
     .meter { height: 6px; background: #e6e8ee; border-radius: 99px; margin-top: 10px; overflow: hidden; }
     .meter i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
     .meter.warn i { background: var(--warn); }
@@ -146,8 +123,8 @@
       gap: 18px 28px;
       align-items: center;
       justify-content: start;
-      background: var(--green-soft);
-      border: 1px solid #b7e4cd;
+      background: #fff;
+      border: 1px solid var(--line);
       border-radius: 16px;
       padding: 18px 20px;
     }
@@ -165,7 +142,7 @@
     }
     .pie-hole b { font-size: 19px; letter-spacing: -0.03em; line-height: 1.1; }
     .pie-hole span { color: var(--muted); font-size: 12px; }
-    .pie-copy h3 { margin: 0; color: var(--green); }
+    .pie-copy h3 { margin: 0; color: var(--ink); }
     .pie-legend { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 7px; }
     .pie-legend li {
       display: grid;
@@ -200,10 +177,9 @@
     .meta.got { color: var(--green); font-weight: 650; }
     .meta.send { color: var(--rose); font-weight: 650; }
     .meta.pend { color: var(--amber); font-weight: 650; }
-    .who { font-weight: 650; color: var(--blue); }
+    .who { font-weight: 650; color: var(--ink); }
     .pack-before .who { color: var(--rose); }
-    .tone-cards .who, .tone-cards .big { color: var(--orange); }
-    .tone-plan .who { color: var(--purple); }
+    .tone-cards .big { color: var(--amber); }
     .sheet { display: grid; gap: 10px; }
     .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .sheet-head h2 { margin: 0; }
@@ -235,65 +211,59 @@
       border-radius: 14px;
       padding: 12px;
     }
-    .pay-table { border: 0; background: transparent; }
-    .pay-table th, .pay-table td { border: 0; border-top: 1px solid var(--line); padding: 10px 8px; vertical-align: middle; }
-    .pay-table thead th { border-top: 0; }
-    .pay-table tr.need input { border-color: var(--warn); }
-    @media (min-width: 721px) {
-      .pay-table { table-layout: fixed; }
-      .pay-table th:nth-child(1), .pay-table td:nth-child(1) { width: 22%; }
-      .pay-table th:nth-child(2), .pay-table td:nth-child(2) { width: 30%; }
-      .pay-table th:nth-child(3), .pay-table td:nth-child(3) { width: 20%; }
-      .pay-table th:nth-child(4), .pay-table td:nth-child(4) { width: 14%; white-space: nowrap; }
-      .pay-table input[type="number"] { width: 120px; max-width: 100%; }
+    .out-list { display: grid; gap: 10px; }
+    .out-row {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr) 130px auto;
+      gap: 10px 14px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
     }
+    .out-row.done { background: var(--soft); }
+    .out-when { color: var(--muted); font-size: 14px; font-weight: 600; }
+    .out-who b { display: block; font-weight: 650; }
+    .out-who small { color: var(--muted); font-size: 12px; }
+    .out-row.done .out-who b { color: var(--muted); text-decoration: line-through; }
+    .out-amt { font-variant-numeric: tabular-nums; font-weight: 650; text-align: right; }
+    .out-amt input { text-align: right; }
+    .out-act { display: flex; gap: 12px; align-items: center; justify-content: flex-end; }
+    .out-act button { min-height: 40px; padding: 8px 12px; font-size: 14px; }
     .good { color: var(--accent); }
     .bad { color: var(--bad); }
     .warn { color: var(--warn); }
-    h2 { margin: 0 0 8px; font-size: 18px; letter-spacing: -0.02em; color: var(--green); }
-    h3 { margin: 0 0 10px; font-size: 15px; color: var(--teal); }
-    .tone-in h2 { color: var(--green); }
-    .tone-out h2 { color: var(--rose); }
-    .tone-cards h2, .tone-cards h3 { color: var(--orange); }
-    .tone-plan h2 { color: var(--purple); }
-    .tone-pay h2, .tone-pay h3 { color: var(--blue); }
-    .tone-groc h2, .tone-groc h3 { color: var(--lime); }
-    .tone-gas h2, .tone-gas h3 { color: var(--amber); }
-    .tone-car h2, .tone-car h3 { color: var(--teal); }
-    .tone-house h2, .tone-house h3 { color: var(--blue); }
-    .tone-util h2, .tone-util h3 { color: var(--purple); }
-    .tone-debt h2, .tone-debt h3 { color: var(--rose); }
-    .tone-loan h2, .tone-loan h3 { color: #9a3412; }
-    .tone-personal h2, .tone-personal h3 { color: #475569; }
-    .tone-backup h2, .tone-backup h3 { color: var(--teal); }
-    .tone-keys h2, .tone-keys h3 { color: var(--purple); }
-    .tone-coach h2 { color: var(--purple); }
-    .caption { color: #5a6b7a; font-size: 13px; margin: 0 0 12px; }
+    h2 { margin: 0 0 8px; font-size: 18px; letter-spacing: -0.02em; color: var(--ink); }
+    h3 { margin: 0 0 10px; font-size: 15px; color: var(--ink); }
+    /* Accent by meaning: green money in, blue the plan, amber flexible spend, rose money out. */
+    .tone-in h2, .tone-in h3 { color: var(--green); }
+    .tone-pay h2, .tone-pay h3, .tone-plan h2, .tone-house h2, .tone-house h3, .tone-util h2, .tone-util h3 { color: var(--blue); }
+    .tone-groc h2, .tone-groc h3, .tone-gas h2, .tone-gas h3, .tone-cards h2, .tone-cards h3 { color: var(--amber); }
+    .tone-out h2, .tone-out h3, .tone-debt h2, .tone-debt h3, .tone-car h2, .tone-car h3, .tone-loan h2, .tone-loan h3 { color: var(--rose); }
+    .tone-personal h2, .tone-personal h3, .tone-backup h2, .tone-backup h3 { color: var(--slate); }
+    .tone-keys h2, .tone-keys h3, .tone-coach h2 { color: var(--violet); }
+    .caption { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
     .card {
       background: #fff;
       border: 1px solid var(--line);
-      border-radius: 16px;
+      border-left: 4px solid var(--line);
+      border-radius: 14px;
       padding: 16px;
     }
-    .card.tone-pay { background: var(--blue-soft); border-color: #c5d4ff; }
-    .card.tone-backup { background: var(--teal-soft); border-color: #b6e0ea; }
-    .card.tone-keys { background: var(--purple-soft); border-color: #d8c8f8; }
-    .card.tone-house { background: var(--blue-soft); border-color: #c5d4ff; }
-    .card.tone-util { background: var(--purple-soft); border-color: #d8c8f8; }
-    .card.tone-groc { background: var(--lime-soft); border-color: #d4e6a3; }
-    .card.tone-cards { background: var(--orange-soft); border-color: #f7c9b4; }
-    .card.tone-debt { background: var(--rose-soft); border-color: #f5c2cf; }
-    .card.tone-car { background: var(--teal-soft); border-color: #b6e0ea; }
-    .card.tone-gas { background: var(--amber-soft); border-color: #f3d59a; }
-    .card.tone-loan { background: #fff4ed; border-color: #f3c9a8; }
-    .card.tone-personal { background: #f3f4f6; border-color: #d5d8de; }
+    .card.tone-in { border-left-color: var(--green); }
+    .card.tone-pay, .card.tone-house, .card.tone-util { border-left-color: var(--blue); }
+    .card.tone-groc, .card.tone-gas, .card.tone-cards { border-left-color: var(--amber); }
+    .card.tone-debt, .card.tone-car, .card.tone-loan { border-left-color: var(--rose); }
+    .card.tone-personal, .card.tone-backup { border-left-color: var(--slate); }
+    .card.tone-keys { border-left-color: var(--violet); }
     .grid-2 { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; align-items: start; }
     table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); }
     th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
-    th { color: var(--teal); font-weight: 600; font-size: 12px; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; }
     .num { text-align: right; font-variant-numeric: tabular-nums; }
     tr.done td { color: var(--muted); }
-    label { display: block; font-size: 12px; color: var(--teal); font-weight: 650; margin-bottom: 4px; }
+    label { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
     input, select, button { font: inherit; color: var(--ink); }
     input, select, textarea, button, table { max-width: 100%; }
     input, select, textarea {
@@ -324,23 +294,11 @@
     }
     button.ghost {
       background: #fff;
-      color: var(--blue);
-      border-color: #c5d4ff;
+      color: var(--ink);
+      border-color: var(--line);
+      font-weight: 600;
     }
-    .tone-in button.ghost { color: var(--green); border-color: #b7e4cd; }
-    .tone-out button.ghost { color: var(--rose); border-color: #f3c0cc; }
-    .tone-cards button.ghost { color: var(--orange); border-color: #f7c9b4; }
-    .tone-groc button.ghost { color: var(--lime); border-color: #d4e6a3; }
-    .tone-gas button.ghost { color: var(--amber); border-color: #f3d59a; }
-    .tone-car button.ghost { color: var(--teal); border-color: #b6e0ea; }
-    .tone-house button.ghost { color: var(--blue); border-color: #c5d4ff; }
-    .tone-util button.ghost { color: var(--purple); border-color: #d8c8f8; }
-    .tone-debt button.ghost { color: var(--rose); border-color: #f5c2cf; }
-    .tone-loan button.ghost { color: #9a3412; border-color: #f3c9a8; }
-    .tone-personal button.ghost { color: #475569; border-color: #d5d8de; }
-    .tone-backup button.ghost { color: var(--teal); border-color: #b6e0ea; }
-    .tone-keys button.ghost { color: var(--purple); border-color: #d8c8f8; }
-    .tone-coach button.ghost { color: var(--purple); border-color: #d8c8f8; }
+    button.ghost:hover { border-color: var(--ink); }
     .row { display: grid; gap: 10px; align-items: end; margin-bottom: 8px; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); }
     .pay-row, .bill-row, .bill-row.variable, .debt-row, .card-row, .key-row, .goal-row, .start-row {
       grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
@@ -419,7 +377,7 @@
       width: 100%;
       max-height: min(80vh, 760px);
       display: none;
-      grid-template-rows: auto auto minmax(0, auto) minmax(60px, 1fr) auto;
+      grid-template-rows: auto auto minmax(0, auto) auto minmax(60px, 1fr) auto;
       gap: 8px;
       overflow: hidden;
       background: #fff;
@@ -435,7 +393,7 @@
       gap: 8px;
       align-items: center;
     }
-    .chat-head h2 { margin: 0; font-size: 16px; color: var(--purple); }
+    .chat-head h2 { margin: 0; font-size: 16px; color: var(--violet); }
     .chat-head select {
       min-width: 0;
       font-size: 14px;
@@ -446,23 +404,26 @@
       min-height: 40px;
       padding: 8px 12px;
       font-size: 14px;
-      color: var(--purple);
-      border-color: #d8c8f8;
+      color: var(--violet);
+      border-color: #ddd0f7;
       white-space: nowrap;
     }
-    #chatKeyStatus { margin: 0; }
+    #chatState:empty { display: none; }
     .chat-insights {
-      background: var(--purple-soft);
-      border: 1px solid #d8c8f8;
+      background: var(--soft);
+      border: 1px solid var(--line);
       border-radius: 14px;
       padding: 10px 12px;
       font-size: 13px;
       max-height: 28vh;
       overflow-y: auto;
     }
-    .chat-insights .who { margin-bottom: 4px; color: var(--purple); }
-    .chat-insights .nudge { font-weight: 750; font-size: 15px; margin: 0 0 8px; color: var(--green); }
-    .chat-insights a { color: var(--accent-ink); font-weight: 650; }
+    .chat-insights .who { margin-bottom: 6px; color: var(--violet); }
+    .chat-insights .facts { display: grid; gap: 3px; }
+    .chat-insights .facts span { color: var(--muted); }
+    .chat-insights .nudge { font-weight: 700; font-size: 14px; margin: 8px 0 4px; color: var(--green); }
+    .chat-insights a { color: var(--blue); font-weight: 650; }
+    .chat-state { margin: 0; font-size: 12px; color: var(--muted); }
     .offer { margin: 6px 0 0; padding-top: 6px; border-top: 1px dashed var(--line); }
     .bubble.act { color: var(--accent); font-size: 13px; }
     .chat-dock.open .chat-panel { display: grid; }
@@ -491,10 +452,12 @@
     }
     #chatToggle {
       border-radius: 12px;
+      height: 44px;
       min-height: 44px;
-      padding: 10px 16px;
-      background: linear-gradient(135deg, #0f8f5b, #1d4ed8);
-      border-color: transparent;
+      min-width: 84px;
+      padding: 0 14px;
+      background: var(--violet);
+      border-color: var(--violet);
       color: #fff;
       white-space: nowrap;
     }
@@ -524,7 +487,7 @@
       .month-bar { flex-wrap: wrap; }
       .month-bar select { width: 100%; }
       .toolbar { flex-wrap: wrap; }
-      .toolbar h2, .toolbar h3 { flex: 1 1 auto; }
+      .toolbar h2, .toolbar h3 { flex: 1 1 auto; margin: 0; }
       .mode { width: 100%; }
       .mode button { flex: 1; min-height: 44px; }
       .narrow-field { max-width: none; }
@@ -535,8 +498,13 @@
       .row, .pay-row, .bill-row, .bill-row.variable, .debt-row, .card-row, .goal-row, .start-row, .line, .key-row {
         grid-template-columns: 1fr;
       }
-      .sheet-head, .toolbar { flex-direction: column; align-items: stretch; }
-      .sheet-head select, .toolbar select, .toolbar button, .sheet-head button { width: 100%; }
+      .sheet-head { flex-direction: column; align-items: stretch; }
+      .sheet-head > select, .sheet-head > button { width: 100%; }
+      .toolbar { flex-direction: row; flex-wrap: wrap; align-items: center; }
+      .toolbar h2, .toolbar h3 { flex: 1 1 auto; margin: 0; }
+      .toolbar > select { flex: 1 1 100%; width: 100%; }
+      .toolbar > button { flex: 0 0 auto; width: auto; }
+      .sheet-head .toolbar > button { flex: 1 1 auto; }
       .field-actions { flex-direction: column; align-items: stretch; }
       .field-actions > button, .field-actions .mode { width: 100%; flex: none; }
       .chat-compose { grid-template-columns: 1fr; }
@@ -550,27 +518,44 @@
       .chat-panel { max-height: min(78dvh, 720px); }
       .chat-insights { max-height: 30dvh; }
       .bubble.me { margin-left: 8%; }
-      .pay-table thead, .stack-table thead { display: none; }
-      .pay-table, .pay-table tbody, .pay-table tr, .pay-table td,
+      .out-row {
+        grid-template-columns: minmax(0, 1fr) 118px;
+        grid-template-areas:
+          "when amt"
+          "who  amt"
+          "act  act";
+        align-items: start;
+        gap: 6px 12px;
+      }
+      .out-when { grid-area: when; }
+      .out-who { grid-area: who; }
+      .out-amt { grid-area: amt; align-self: center; }
+      .out-act {
+        grid-area: act;
+        justify-content: space-between;
+        border-top: 1px solid var(--line);
+        margin-top: 6px;
+        padding-top: 6px;
+      }
+      .stack-table thead { display: none; }
       .stack-table, .stack-table tbody, .stack-table tr, .stack-table td { display: block; width: 100%; }
-      .pay-table tr, .stack-table tr {
+      .stack-table tr {
         border: 1px solid var(--line);
         border-radius: 14px;
         padding: 10px 12px;
         margin: 0 0 10px;
         background: #fff;
       }
-      .pay-table td, .stack-table td { border: 0; padding: 8px 0; width: 100%; text-align: left; }
-      .pay-table td::before, .stack-table td::before {
+      .stack-table td { border: 0; padding: 8px 0; width: 100%; text-align: left; }
+      .stack-table td::before {
         display: block;
         content: attr(data-label);
         font-size: 12px;
-        font-weight: 650;
-        color: var(--teal);
+        font-weight: 600;
+        color: var(--muted);
         margin-bottom: 4px;
       }
-      .pay-table td:empty::before, .stack-table td:empty::before { display: none; }
-      .pay-table input[type="number"], .pay-table input[type="date"] { width: 100%; max-width: none; }
+      .stack-table td:empty::before { display: none; }
     }
     @media (max-width: 400px) {
       header p { display: none; }
@@ -774,8 +759,9 @@
         <select id="chatModel" aria-label="Claude model"></select>
         <button type="button" class="ghost" id="adviceRefresh">Refresh</button>
       </div>
-      <p class="caption" id="chatKeyStatus">Claude runs only when you open the app, change something, or tap Refresh — not in the background.</p>
+      <p class="chat-state" id="chatKeyStatus">Claude runs only when you open the app, change something, or tap Refresh — not in the background.</p>
       <div id="chatInsights" class="chat-insights"></div>
+      <p class="chat-state" id="chatState"></p>
       <div id="chatLog" class="chat-log"></div>
       <form id="chatForm" class="chat-compose">
         <textarea id="chatInput" placeholder="Try: add $200 to my Oct 5 paycheck"></textarea>
@@ -1166,6 +1152,7 @@
         renderPaychecks();
         renderMonth();
       }
+      window.scrollTo(0, 0);
     }
 
     function monthFlow() {
@@ -1513,12 +1500,12 @@
       const { received, planned, flow } = monthTotals();
       const byId = Object.fromEntries(allAccounts().map((a) => [a.id, a]));
       const buckets = [
-        { id: "groceries", label: "Groceries", color: "#65a30d", amount: 0 },
-        { id: "gas", label: "Gas", color: "#d97706", amount: 0 },
-        { id: "housing", label: "Rent & utilities", color: "#1d4ed8", amount: 0 },
-        { id: "car", label: "Car", color: "#0e7490", amount: 0 },
-        { id: "debt", label: "Cards & loans", color: "#b45309", amount: 0 },
-        { id: "personal", label: "Personal", color: "#6b7280", amount: 0 },
+        { id: "groceries", label: "Groceries", color: "#b45309", amount: 0 },
+        { id: "gas", label: "Gas", color: "#0891b2", amount: 0 },
+        { id: "housing", label: "Rent & utilities", color: "#2563eb", amount: 0 },
+        { id: "car", label: "Car", color: "#7c3aed", amount: 0 },
+        { id: "debt", label: "Cards & loans", color: "#be123c", amount: 0 },
+        { id: "personal", label: "Personal", color: "#64748b", amount: 0 },
         { id: "leftover", label: "Left to spend", color: "#0f8f5b", amount: 0 },
       ];
       const find = (id) => buckets.find((b) => b.id === id);
@@ -1662,9 +1649,9 @@
       const rows = flow.map((row) => {
         const account = row.accountId ? accounts.find((a) => a.id === row.accountId) : null;
         const extra = row.kind === "grocery"
-          ? `Room ${money(row.room)} this Saturday — only what you type is planned`
+          ? `Room ${money(row.room)} this Saturday`
           : row.kind === "gas"
-          ? `Room ${money(row.room)} per fill — only this trip is planned`
+          ? `Room ${money(row.room)} this fill`
           : account ? leftoverNote(account) : "";
         const dateCell = row.kind === "gas"
           ? `<input type="date" data-gas="${row.fillId}" data-gk="date" value="${escapeAttr(row.date)}" />`
@@ -1690,20 +1677,20 @@
           : row.editable
           ? `<button type="button" class="ghost" data-del-slice="${row.sliceId}">Remove</button>`
           : "";
-        return `<tr class="${row.sent ? "done" : ""}">
-          <td data-label="Date">${dateCell}</td>
-          <td data-label="To">${escapeHtml(row.name)}${extra ? `<div class="caption" style="margin:0" ${row.accountId ? `data-left="${row.accountId}"` : ""}>${extra}</div>` : ""}</td>
-          <td class="num" data-label="Amount">${amountCell}</td>
-          <td data-label="Status"><label class="sent-check"><input type="checkbox" ${sentAttr} ${row.sent ? "checked" : ""} /> Sent</label></td>
-          <td data-label="">${remove}</td>
-        </tr>`;
+        return `<div class="out-row ${row.sent ? "done" : ""}">
+          <div class="out-when">${dateCell}</div>
+          <div class="out-who">
+            <b>${escapeHtml(row.name)}</b>
+            ${extra ? `<small ${row.accountId ? `data-left="${row.accountId}"` : ""}>${extra}</small>` : ""}
+          </div>
+          <div class="out-amt">${amountCell}</div>
+          <div class="out-act">
+            <label class="sent-check"><input type="checkbox" ${sentAttr} ${row.sent ? "checked" : ""} /> Sent</label>
+            ${remove}
+          </div>
+        </div>`;
       }).join("");
-      document.getElementById("payments").innerHTML = `
-        <table class="pay-table">
-          <thead><tr><th>Date</th><th>To</th><th class="num">Amount</th><th></th><th></th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
+      document.getElementById("payments").innerHTML = `<div class="out-list">${rows}</div>`;
     }
 
     function renderPaychecks() {
@@ -2229,42 +2216,51 @@
         if (t.need <= 0) return `${card.name} is at ${t.pct}%`;
         return `${card.name}: send ${money(t.need)} to hit 30%`;
       });
+      const weeks = groceryWeeks();
+      const grocRoom = weeks.reduce((sum, g) => sum + num(g.room), 0);
+      const grocUsed = weeks.reduce((sum, g) => sum + num(g.amount), 0);
+      const gasUsed = (monthState().gasFills || []).reduce((sum, g) => sum + num(g.amount), 0);
       el.innerHTML = `
-        <div class="who">Finance insights</div>
-        <div>${nextCheck ? `Next check ${prettyDate(nextCheck.date)} · ${escapeHtml(nextCheck.source)}${nextCheck.amount ? " · " + money(nextCheck.amount) : ""}` : "No paycheck dates."}</div>
-        <div>${nextBill ? `Next out ${prettyDate(nextBill.date)} · ${escapeHtml(nextBill.name)} · ${money(nextBill.amount)}` : "Nothing pending."}</div>
-        <div>This month ${money(received)} in · ${money(planned)} out · ${spend < 0 ? "short " + money(-spend) : "left " + money(spend)}</div>
-        <div>${cards.join(" · ") || "No cards."}</div>
-        <div>${(() => {
-          const weeks = groceryWeeks();
-          const room = weeks.reduce((sum, g) => sum + num(g.room), 0);
-          const used = weeks.reduce((sum, g) => sum + num(g.amount), 0);
-          return `Grocery room left ${money(Math.max(0, room - used))} of ${money(room)} — spend as little as you can`;
-        })()}</div>
-        <div>${(() => {
-          const fills = monthState().gasFills || [];
-          const used = fills.reduce((sum, g) => sum + num(g.amount), 0);
-          const room = num(state.settings.gasRoom);
-          return `Gas this month ${money(used)} · room ${money(room)} per fill`;
-        })()}</div>
+        <div class="who">This month at a glance</div>
+        <div class="facts">
+          <div><span>In</span> ${money(received)} · <span>out</span> ${money(planned)} · <span>${spend < 0 ? "short" : "left"}</span> ${money(Math.abs(spend))}</div>
+          <div><span>Next check</span> ${nextCheck ? prettyDate(nextCheck.date) + (nextCheck.amount ? " · " + money(nextCheck.amount) : "") : "none set"}</div>
+          <div><span>Next out</span> ${nextBill ? prettyDate(nextBill.date) + " · " + escapeHtml(nextBill.name) + " · " + money(nextBill.amount) : "nothing pending"}</div>
+          <div><span>Groceries</span> ${money(grocUsed)} of ${money(grocRoom)} room · <span>gas</span> ${money(gasUsed)}</div>
+          ${cards.length ? `<div><span>Cards</span> ${escapeHtml(cards.join(" · "))}</div>` : ""}
+        </div>
         ${renderAdviceBlock()}
       `;
+      renderAdviceState();
+    }
+    function renderAdviceState() {
+      const el = document.getElementById("chatState");
+      if (!el) return;
+      if (!liveKeys().length) {
+        el.textContent = "";
+        return;
+      }
+      if (adviceBusy) {
+        el.textContent = "Looking for deals…";
+        return;
+      }
+      const pack = state.chat.advice;
+      el.textContent = pack && pack.at
+        ? `Deals updated ${new Date(pack.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}.`
+        : "Tap Refresh for deals and tips.";
     }
     function renderAdviceBlock() {
       const pack = state.chat.advice;
-      if (adviceBusy) return `<div class="caption" style="margin:8px 0 0">Coach is looking for savings…</div>`;
-      if (!pack) return `<div class="caption" style="margin:8px 0 0">Coach is quiet until you open the app, change something, or tap Refresh.</div>`;
+      if (adviceBusy || !pack) return "";
       const offers = (pack.offers || []).filter((o) => o && o.title).map((o) => {
         const title = o.url ? `<a href="${escapeAttr(o.url)}" target="_blank" rel="noopener">${escapeHtml(o.title)}</a>` : escapeHtml(o.title);
         return `<div class="offer">${title}${o.save ? " · " + escapeHtml(o.save) : ""}${o.why ? `<div class="caption" style="margin:2px 0 0">${escapeHtml(o.why)}</div>` : ""}</div>`;
       }).join("");
       const tips = (pack.advice || []).map((tip) => `<div>• ${escapeHtml(tip)}</div>`).join("");
-      const when = pack.at ? new Date(pack.at).toLocaleString() : "";
       return `
         <div class="nudge">${escapeHtml(pack.nudge || "Keep going.")}</div>
         ${tips}
         ${offers ? `<div class="who" style="margin-top:10px">Live offers</div>${offers}` : ""}
-        <div class="caption" style="margin:8px 0 0">Updated ${escapeHtml(when)} · ${escapeHtml(pack.reason || "")}</div>
       `;
     }
     function renderChat() {
@@ -2664,6 +2660,7 @@
         monthState().groceryPaid[e.target.dataset.grocPaid] = e.target.checked;
         save();
         renderHero();
+        renderSends();
         return;
       }
       if (e.target.dataset.gasSent) {
@@ -2671,6 +2668,7 @@
         if (fill) fill.sent = e.target.checked;
         save();
         renderHero();
+        renderSends();
         return;
       }
       if (e.target.dataset.paid) {
@@ -2679,6 +2677,7 @@
         applyBalance(id);
         save();
         renderHero();
+        renderSends();
         return;
       }
       if (e.target.dataset.sliceSent) {
@@ -2688,6 +2687,7 @@
         applyBalance(found.accountId);
         save();
         renderHero();
+        renderSends();
       }
     });
     document.getElementById("view-month").addEventListener("click", (e) => {

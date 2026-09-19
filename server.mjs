@@ -99,7 +99,7 @@ function listen(port) {
     process.exit(1);
   });
   server.listen(port, "127.0.0.1", () => {
-    console.log(`Budget app at http://127.0.0.1:${port}/?v=29`);
+    console.log(`Budget app at http://127.0.0.1:${port}/?v=30`);
   });
 }
 

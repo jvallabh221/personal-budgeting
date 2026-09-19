@@ -1,0 +1,11 @@
+{
+  "name": "personal-budget",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "build:cf": "node scripts/build-cf.mjs",
+    "cf:dev": "node scripts/build-cf.mjs && npx --yes wrangler pages dev",
+    "cf:deploy": "node scripts/build-cf.mjs && npx --yes wrangler pages deploy"
+  }
+}

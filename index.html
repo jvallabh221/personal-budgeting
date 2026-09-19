@@ -1,0 +1,2417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta http-equiv="Cache-Control" content="no-store" />
+  <title>Personal budget</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --paper: #ffffff;
+      --ink: #111827;
+      --muted: #5b6472;
+      --line: #e6e8ee;
+      --card: #ffffff;
+      --soft: #f6f7fb;
+      --accent: #0f8f5b;
+      --accent-ink: #065f3c;
+      --gold: #111827;
+      --warn: #b45309;
+      --bad: #dc2626;
+      --pay: #1d4ed8;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    html, body { margin: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.45;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    header {
+      padding: calc(20px + env(safe-area-inset-top)) 28px 0;
+      background: #fff;
+      color: var(--ink);
+      border-bottom: 1px solid var(--line);
+    }
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 30px;
+      letter-spacing: -0.04em;
+    }
+    header p { margin: 0 0 16px; color: var(--muted); max-width: 70ch; }
+    .tabs { display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      padding: 12px 16px;
+      cursor: pointer;
+      font: inherit;
+      min-height: 44px;
+      flex-shrink: 0;
+    }
+    .tab.on {
+      color: var(--ink);
+      border-bottom-color: var(--accent);
+      font-weight: 650;
+    }
+    main { padding: 22px 28px 72px; display: grid; gap: 28px; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .stat {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+    .stat b { display: block; font-size: 22px; letter-spacing: -0.03em; }
+    .stat span { color: var(--muted); font-size: 13px; }
+    .month-bar { display: flex; align-items: baseline; gap: 12px; }
+    .month-bar h2 { margin: 0; }
+    .month-bar select { width: auto; }
+    .summary {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 8px 28px;
+      padding: 18px 20px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+    .big { font-size: 40px; font-weight: 750; letter-spacing: -0.05em; line-height: 1; }
+    .meta { color: var(--muted); font-size: 14px; }
+    .who { font-weight: 650; }
+    .sheet { display: grid; gap: 10px; }
+    .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .sheet-head h2 { margin: 0; }
+    .next-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 0; }
+    .next-grid > div {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px 18px;
+    }
+    .pack { padding: 14px 0; border-top: 1px solid var(--line); }
+    .pack:first-child { border-top: 0; }
+    .pack ul { margin: 8px 0 0; padding-left: 18px; }
+    .pack li { margin: 4px 0; }
+    .line {
+      display: grid;
+      grid-template-columns: 170px 140px auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .pay-table { border: 0; background: transparent; table-layout: fixed; }
+    .pay-table th, .pay-table td { border: 0; border-top: 1px solid var(--line); padding: 10px 8px; vertical-align: middle; }
+    .pay-table thead th { border-top: 0; }
+    .pay-table th:nth-child(1), .pay-table td:nth-child(1) { width: 22%; }
+    .pay-table th:nth-child(2), .pay-table td:nth-child(2) { width: 30%; }
+    .pay-table th:nth-child(3), .pay-table td:nth-child(3) { width: 20%; }
+    .pay-table th:nth-child(4), .pay-table td:nth-child(4) { width: 14%; white-space: nowrap; }
+    .pay-table input[type="number"] { width: 120px; max-width: 100%; }
+    .pay-table tr.need input { border-color: var(--warn); }
+    .good { color: var(--accent); }
+    .bad { color: var(--bad); }
+    .warn { color: var(--warn); }
+    h2 { margin: 0 0 8px; font-size: 18px; letter-spacing: -0.02em; }
+    h3 { margin: 0 0 10px; font-size: 15px; }
+    .caption { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; align-items: start; }
+    table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    tr.done td { color: var(--muted); }
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    input, select, button { font: inherit; color: var(--ink); }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 10px 8px;
+      font-size: 16px;
+      border-radius: 12px;
+    }
+    textarea { min-height: 72px; resize: vertical; }
+    button {
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: #fff;
+      padding: 10px 14px;
+      cursor: pointer;
+      min-height: 44px;
+      border-radius: 12px;
+      font-weight: 650;
+    }
+    button.ghost {
+      background: #fff;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+    .row { display: grid; gap: 8px; align-items: end; margin-bottom: 8px; }
+    .pay-row { grid-template-columns: 1fr 1fr auto; }
+    .bill-row { grid-template-columns: 1.2fr 1fr 80px auto auto; }
+    .bill-row.variable { grid-template-columns: 1.4fr 80px auto auto; }
+    .debt-row { grid-template-columns: 1.1fr 1fr 90px 80px 1fr auto auto; }
+    .card-row { grid-template-columns: 1.2fr 1fr 1fr 90px 90px 80px auto auto; }
+    .util {
+      font-size: 22px;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      padding-top: 6px;
+    }
+    .goal-row { grid-template-columns: 1fr 1fr; margin-top: 12px; }
+    .start-row { grid-template-columns: 1fr 1fr; margin-top: 12px; }
+    .debt-block { margin-bottom: 22px; padding: 16px 0 18px; border-bottom: 1px solid var(--line); }
+    .plan { margin: 14px 0 0; color: var(--ink); font-size: 14px; line-height: 1.55; max-width: 72ch; }
+    .mode { display: flex; gap: 4px; }
+    .mode button { padding: 7px 8px; font-size: 12px; }
+    .sent-check { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--muted); font-size: 13px; }
+    .section { margin-bottom: 22px; }
+    .hidden { display: none; }
+    .empty { color: var(--muted); font-size: 14px; }
+    .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    main { padding-bottom: 96px; }
+    .chat-dock {
+      position: fixed;
+      right: 16px;
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      width: min(420px, calc(100vw - 24px));
+      pointer-events: none;
+    }
+    .chat-dock > * { pointer-events: auto; }
+    .chat-panel {
+      width: 100%;
+      max-height: min(80vh, 760px);
+      display: none;
+      grid-template-rows: auto auto minmax(0, auto) minmax(80px, 1fr) auto;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 16px 40px rgba(17, 24, 39, 0.12);
+      padding: 12px 12px 10px;
+    }
+    .chat-insights {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 13px;
+      max-height: 28vh;
+      overflow-y: auto;
+    }
+    .chat-insights .who { margin-bottom: 4px; color: var(--accent-ink); }
+    .chat-insights .nudge { font-weight: 750; font-size: 15px; margin: 0 0 8px; }
+    .chat-insights a { color: var(--accent-ink); font-weight: 650; }
+    .offer { margin: 6px 0 0; padding-top: 6px; border-top: 1px dashed var(--line); }
+    .bubble.act { color: var(--accent); font-size: 13px; }
+    .chat-dock.open .chat-panel { display: grid; }
+    .chat-log {
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      min-height: 140px;
+      overflow-y: auto;
+      padding: 4px 2px 8px;
+    }
+    .bubble {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      max-width: 100%;
+      white-space: pre-wrap;
+    }
+    .bubble.me { margin-left: 18%; background: #e9f8f0; }
+    .chat-compose {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+    #chatToggle {
+      border-radius: 14px;
+      min-height: 52px;
+      padding: 10px 20px;
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(17, 24, 39, 0.16);
+    }
+    .key-row { grid-template-columns: 1fr 1.4fr 110px auto auto; }
+    .api-status { font-size: 12px; }
+    @media (max-width: 960px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .grid-2, .next-grid, .bill-row, .bill-row.variable, .debt-row, .card-row, .goal-row, .start-row, .pay-row, .line, .key-row { grid-template-columns: 1fr; }
+      header, main { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+      header { padding-top: max(16px, env(safe-area-inset-top)); }
+      header h1 { font-size: 24px; }
+      .big { font-size: 28px; }
+      .month-bar, .sheet-head, .toolbar { flex-wrap: wrap; }
+      .month-bar select, .sheet-head select, .toolbar select, .toolbar button, .sheet-head button { width: 100%; }
+      .mode { width: 100%; }
+      .mode button { flex: 1; }
+    }
+    @media (max-width: 720px) {
+      .stats { grid-template-columns: 1fr; }
+      .chat-compose { grid-template-columns: 1fr; }
+      .chat-dock {
+        right: 12px;
+        left: 12px;
+        width: auto;
+        align-items: stretch;
+      }
+      #chatToggle { width: 100%; }
+      .chat-panel { max-height: min(78dvh, 720px); }
+      .chat-insights { max-height: 22dvh; }
+      .bubble.me { margin-left: 8%; }
+      .pay-table thead { display: none; }
+      .pay-table, .pay-table tbody, .pay-table tr, .pay-table td { display: block; width: 100%; }
+      .pay-table tr {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 10px 12px;
+        margin: 0 0 10px;
+      }
+      .pay-table td { border: 0; padding: 6px 0; width: 100%; }
+      .pay-table input[type="number"], .pay-table input[type="date"] { width: 100%; max-width: none; }
+      table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Make this month yours</h1>
+    <p>Every check has a job. Spend less on groceries than the room you left. Push cards toward 30%. You are closer than it feels.</p>
+    <div class="tabs">
+      <button type="button" class="tab on" data-tab="month">This month</button>
+      <button type="button" class="tab" data-tab="settings">Settings</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="view-month">
+      <div class="month-bar">
+        <h2>This month</h2>
+        <select id="monthKey"></select>
+      </div>
+      <div id="nextUp" class="next-grid"></div>
+      <div id="hero" class="summary"></div>
+      <div class="sheet">
+        <h2>Credit cards to 30%</h2>
+        <p class="caption">This is the extra you send so used credit drops to 30% of the limit. It is not the minimum due.</p>
+        <div id="cardTarget"></div>
+      </div>
+      <div class="sheet">
+        <h2>What to pay from each paycheck</h2>
+        <p class="caption">Main job is the 5th and 20th. Second job is biweekly: start at Oct 2, then add 14 days — Oct 16, Oct 30, Nov 13, and so on. Each bill is paid from the latest check on or before that date.</p>
+        <div id="plan"></div>
+      </div>
+      <div class="sheet">
+        <div class="sheet-head">
+          <h2>In</h2>
+          <button type="button" class="ghost" id="addPaycheck">Add paycheck</button>
+        </div>
+        <div id="paychecks"></div>
+      </div>
+      <div class="sheet">
+        <div class="sheet-head">
+          <h2>Out</h2>
+          <div class="toolbar">
+            <select id="addSendAccount" style="width:auto"></select>
+            <button type="button" class="ghost" id="addSend">Add a send date</button>
+            <button type="button" class="ghost" id="addGasFill">Add a gas fill</button>
+          </div>
+        </div>
+        <p class="caption">Money goes out on real dates — a paycheck day, not one monthly pot. Add Oct 5 and Oct 6 as two sends to the same loan if that is how the cash lands.</p>
+        <div id="payments" class="scroll"></div>
+      </div>
+    </section>
+
+    <section id="view-settings" class="hidden">
+      <div class="stats" id="debtHero"></div>
+      <div class="section card">
+        <h3 style="margin:0">Paydays — these stay fixed</h3>
+        <p class="caption">Main job: 5th and 20th every month. Second job: biweekly from October 2 (Oct 2 + 14 = Oct 16, then Oct 30, Nov 13…).</p>
+      </div>
+
+      <div class="section card">
+        <h3 style="margin:0">Backup</h3>
+        <p class="caption">Google Drive is the right place to keep this file — not a live hook inside the app. Download a JSON, drop it in Drive. To come back, Restore that file. That works on localhost, your phone, and Cloudflare without Google OAuth keys.</p>
+        <div class="toolbar">
+          <button type="button" id="backupDownload">Download backup</button>
+          <button type="button" class="ghost" id="backupRestore">Restore from file</button>
+          <input id="backupFile" type="file" accept="application/json,.json" class="hidden" />
+        </div>
+        <p class="caption" id="backupStatus" style="margin:10px 0 0"></p>
+      </div>
+
+      <div class="section card">
+        <div class="toolbar">
+          <h3 style="margin:0">Claude API keys</h3>
+          <button type="button" class="ghost" id="addApiKey">Add API key</button>
+        </div>
+        <p class="caption">Paste each key here (you can keep ~10, $100 each). The chat sticks to the first live key. If that key is out of credit, invalid, or hits a spend cap, it is taken out of rotation and the next key is used. A short rate-limit tries the next key without killing the first. Keys stay in this browser — not on Cloudflare. Same app locally or on Pages.</p>
+        <div>
+          <label>Default model</label>
+          <select id="claudeModel"></select>
+        </div>
+        <div id="apiKeys" style="margin-top:12px"></div>
+      </div>
+      <p class="caption">Fixed bills need a monthly amount here. Extra sends are typed on This month by date. Amount left drops when you mark Sent.</p>
+
+      <div class="section card">
+        <div class="toolbar">
+          <h3 style="margin:0">Rent and housing</h3>
+          <button type="button" class="ghost" data-add="rent">Add rent or housing</button>
+        </div>
+        <div id="rent"></div>
+      </div>
+
+      <div class="section card">
+        <div class="toolbar">
+          <h3 style="margin:0">Utilities</h3>
+          <button type="button" class="ghost" data-add="utilities">Add utility</button>
+        </div>
+        <div id="utilities"></div>
+      </div>
+
+      <div class="section card">
+        <h3 style="margin:0">Groceries</h3>
+        <p class="caption">Saturdays are shopping days, not five locked $50 bills. This number is room you can spend if you need it. Type the real trip on This month — spend as little as you can. Blank Saturdays do not come out of a paycheck.</p>
+        <div class="row" style="grid-template-columns: 200px; max-width: 220px">
+          <div>
+            <label>Room each Saturday</label>
+            <input id="groceriesWeekly" type="number" min="0" step="0.01" />
+          </div>
+        </div>
+      </div>
+
+      <div class="section card">
+        <div class="toolbar">
+          <h3 style="margin:0">Credit cards</h3>
+          <button type="button" class="ghost" data-add="creditCards">Add card</button>
+        </div>
+        <p class="caption">Credit is the limit on the card. Used is what is on it now. The percent is used ÷ credit. After you mark Sent, used drops by that payment.</p>
+        <div id="creditCards"></div>
+      </div>
+
+      <div class="section card">
+        <div class="toolbar">
+          <h3 style="margin:0">Student loans</h3>
+          <button type="button" class="ghost" data-add="studentLoans">Add student loan</button>
+        </div>
+        <p class="caption">Enter what you owe, day 1, months, and the APR on the loan right now. The monthly amount is a normal amortizing payment (principal + interest over those months). If you refinance, type the new APR and it recalculates.</p>
+        <div id="studentLoans"></div>
+      </div>
+
+      <div class="section card">
+        <div class="toolbar">
+          <h3 style="margin:0">Car insurance</h3>
+          <button type="button" class="ghost" data-add="carInsurance">Add car insurance</button>
+        </div>
+        <p class="caption">Monthly premium. Fixed if the bill is the same; Variable if you type the send on This month.</p>
+        <div id="carInsurance"></div>
+      </div>
+
+      <div class="section card">
+        <h3 style="margin:0">Gas</h3>
+        <p class="caption">This is room per fill, not a locked weekly bill. Add a fill on This month when you actually pump. Spend under this if you can.</p>
+        <div class="row" style="grid-template-columns: 200px; max-width: 220px">
+          <div>
+            <label>Room each fill</label>
+            <input id="gasRoom" type="number" min="0" step="0.01" />
+          </div>
+        </div>
+      </div>
+
+      <div class="section card">
+        <div class="toolbar">
+          <h3 style="margin:0">Car finance</h3>
+          <button type="button" class="ghost" data-add="carFinance">Add car loan</button>
+        </div>
+        <p class="caption">October 2 is day 1 of the first payment. APR is the loan rate used to size the monthly payment over your months — not one month of interest sitting next to the term. Change APR if you refinance.</p>
+        <div id="carFinance"></div>
+      </div>
+
+      <div class="section card">
+        <div class="toolbar">
+          <h3 style="margin:0">Other loans</h3>
+          <button type="button" class="ghost" data-add="otherLoans">Add loan</button>
+        </div>
+        <div id="otherLoans"></div>
+      </div>
+
+      <div class="section card">
+        <div class="toolbar">
+          <h3 style="margin:0">Personal payments</h3>
+          <button type="button" class="ghost" data-add="personal">Add personal payment</button>
+        </div>
+        <p class="caption">Amount left is what you still owe a person. Mark Sent on This month and that payment comes off this balance. Pay $700, Settings shows $700 less.</p>
+        <div id="personal"></div>
+      </div>
+
+      <div class="section">
+        <h2>Payoff plans</h2>
+        <p class="caption">Payoff uses the fixed Settings amount, or this month’s contribution if the loan is variable.</p>
+        <div id="payoff" class="scroll"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="chatDock" class="chat-dock">
+    <div class="chat-panel" id="chatPanel">
+      <div class="sheet-head">
+        <h2>Coach</h2>
+        <div class="toolbar">
+          <select id="chatModel"></select>
+          <button type="button" class="ghost" id="adviceRefresh">Refresh</button>
+        </div>
+      </div>
+      <p class="caption" id="chatKeyStatus">Claude runs only when you open the app, change something, or tap Refresh — not in the background.</p>
+      <div id="chatInsights" class="chat-insights"></div>
+      <div id="chatLog" class="chat-log"></div>
+      <form id="chatForm" class="chat-compose">
+        <textarea id="chatInput" placeholder="Try: add $200 to my Oct 5 paycheck"></textarea>
+        <button type="submit" id="chatSend">Send</button>
+      </form>
+    </div>
+    <button type="button" id="chatToggle">Coach</button>
+  </div>
+
+  <script>
+    const KEY = "personal-budget-v2";
+    const DEBT_KEYS = ["creditCards", "studentLoans", "carFinance", "otherLoans"];
+    const BILL_KEYS = ["rent", "utilities", "carInsurance"];
+    const BALANCE_KEYS = [...DEBT_KEYS, "personal"];
+    const ALL_KEYS = [...BILL_KEYS, ...BALANCE_KEYS];
+    const CLAUDE_MODELS = [
+      { id: "claude-haiku-4-5", label: "Haiku 4.5 — cheap everyday" },
+      { id: "claude-sonnet-4-6", label: "Sonnet 4.6 — default" },
+      { id: "claude-sonnet-4-5", label: "Sonnet 4.5" },
+      { id: "claude-opus-4-6", label: "Opus 4.6 — deeper plan" },
+      { id: "claude-opus-4-8", label: "Opus 4.8 — heaviest" },
+    ];
+
+    const starter = {
+      monthKey: "2026-10",
+      months: {},
+      settings: {
+        rent: [{ id: "rent-1", name: "Rent", amount: "1350", dueDay: "1", kind: "fixed" }],
+        utilities: [
+          { id: "util-1", name: "Electric", amount: "120", dueDay: "12", kind: "variable" },
+          { id: "util-2", name: "Internet", amount: "80", dueDay: "18", kind: "variable" },
+        ],
+        creditCards: [{ id: "cc-1", name: "Visa", amount: "2400", apr: "22.9", dueDay: "22", kind: "variable" }],
+        studentLoans: [{ id: "sl-1", name: "Student loan", amount: "18000", apr: "6.5", dueDay: "8", kind: "variable", goalAmount: "18000", goalMonths: "36" }],
+        carFinance: [{ id: "car-1", name: "Car finance", amount: "14200", apr: "", dueDay: "2", kind: "fixed", fixedPay: "410", goalAmount: "14200", goalMonths: "48", firstPayDate: "2026-10-02" }],
+        carInsurance: [{ id: "ins-1", name: "Car insurance", amount: "", dueDay: "15", kind: "fixed" }],
+        otherLoans: [],
+        personal: [{ id: "per-1", name: "Personal", amount: "700", dueDay: "10", kind: "variable" }],
+        groceriesWeekly: "50",
+        gasRoom: "40",
+        mainPayDays: [5, 20],
+        biweeklyStart: "2026-10-02",
+        claude: { model: "claude-sonnet-4-6", keys: [] },
+      },
+      chat: { messages: [] },
+    };
+
+    function load() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(KEY) || "null");
+        if (!raw) return structuredClone(starter);
+        return {
+          ...starter,
+          ...raw,
+          settings: { ...starter.settings, ...(raw.settings || {}) },
+          months: raw.months || {},
+        };
+      } catch {
+        return structuredClone(starter);
+      }
+    }
+
+    function defaultKind(key) {
+      return key === "rent" || key === "carFinance" || key === "carInsurance" ? "fixed" : "variable";
+    }
+    function itemKind(item, key) {
+      return item.kind === "fixed" || item.kind === "variable" ? item.kind : defaultKind(key);
+    }
+    function isFixed(item) {
+      return item.kind === "fixed";
+    }
+
+    const state = load();
+    if (state.monthKey === "2026-09") {
+      if (!state.months["2026-10"] && state.months["2026-09"]) {
+        state.months["2026-10"] = state.months["2026-09"];
+      }
+      delete state.months["2026-09"];
+      state.monthKey = "2026-10";
+    }
+    for (const key of BILL_KEYS) {
+      state.settings[key] = (state.settings[key] || []).map((item) => ({
+        ...item,
+        kind: itemKind(item, key),
+      }));
+    }
+    if (!state.settings.carInsurance.length) {
+      state.settings.carInsurance = [{ id: "ins-1", name: "Car insurance", amount: "", dueDay: "15", kind: "fixed" }];
+    }
+    if (state.settings.gasRoom == null || state.settings.gasRoom === "") state.settings.gasRoom = "40";
+    for (const key of BALANCE_KEYS) {
+      state.settings[key] = (state.settings[key] || []).map((item) => ({
+        ...item,
+        amount: item.amount ?? item.balance ?? "0",
+        kind: itemKind(item, key),
+        fixedPay: item.fixedPay ?? item.monthlyPayment ?? "",
+        firstPayDate: item.firstPayDate || (key === "carFinance" ? "2026-10-02" : ""),
+      }));
+    }
+    state.settings.biweeklyStart = state.settings.biweeklyStart || "2026-10-02";
+    delete state.settings.weeklyStarts;
+    delete state.settings.weeklyPayDays;
+    state.settings.claude = {
+      model: (state.settings.claude && state.settings.claude.model) || "claude-sonnet-4-6",
+      keys: Array.isArray(state.settings.claude?.keys) ? state.settings.claude.keys : [],
+    };
+    if (!state.chat || !Array.isArray(state.chat.messages)) state.chat = { messages: [], advice: null };
+    if (!state.chat.advice) state.chat.advice = null;
+
+    let adviceTimer = null;
+    let adviceBusy = false;
+    function save(mode) {
+      localStorage.setItem(KEY, JSON.stringify(state));
+      if (mode !== "quiet") scheduleAdvice();
+    }
+    function scheduleAdvice() {
+      if (typeof liveKeys !== "function" || !liveKeys().length) return;
+      clearTimeout(adviceTimer);
+      adviceTimer = setTimeout(() => refreshAdvice("change"), 2800);
+    }
+
+    function uid(prefix) {
+      return prefix + "-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+    }
+    function money(n) {
+      const formatted = Math.abs(n).toLocaleString("en-US", { style: "currency", currency: "USD" });
+      return n < 0 ? "-" + formatted : formatted;
+    }
+    function num(v) {
+      const n = Number(String(v ?? "").replace(/[^0-9.-]/g, ""));
+      return Number.isFinite(n) ? n : 0;
+    }
+    function day(v, fallback) {
+      const n = Math.round(Number(v));
+      return Number.isFinite(n) ? Math.min(28, Math.max(1, n)) : fallback;
+    }
+    function parseMonthKey(key) {
+      const [ys, ms] = String(key).split("-");
+      const year = Number(ys), month = Number(ms) - 1;
+      if (!Number.isFinite(year) || !Number.isFinite(month)) return { year: 2026, month: 9 };
+      return { year, month };
+    }
+    function monthKeyOf(y, m) { return y + "-" + String(m + 1).padStart(2, "0"); }
+    function monthLabel(y, m) {
+      return new Date(y, m, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    }
+    function monthState() {
+      if (!state.months[state.monthKey]) {
+        state.months[state.monthKey] = { paychecks: [], paid: {}, contribute: {}, sends: {}, groceryPaid: {} };
+      }
+      const current = state.months[state.monthKey];
+      if (!current.contribute) current.contribute = {};
+      if (!current.paid) current.paid = {};
+      if (!current.paychecks) current.paychecks = [];
+      if (!current.applied) current.applied = {};
+      if (!current.sends) current.sends = {};
+      if (!current.groceryPaid) current.groceryPaid = {};
+      if (!current.grocerySpend) current.grocerySpend = {};
+      if (!Array.isArray(current.gasFills)) current.gasFills = [];
+      return current;
+    }
+    function daysInMonth(y, m) {
+      return new Date(y, m + 1, 0).getDate();
+    }
+    function ymd(y, m, d) {
+      return y + "-" + String(m + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+    }
+    function defaultDateInMonth() {
+      const { year, month } = parseMonthKey(state.monthKey);
+      const dated = (monthState().paychecks || []).filter((p) => p.date);
+      if (dated.length) return dated[dated.length - 1].date;
+      return ymd(year, month, 5);
+    }
+    function scheduledDate(account) {
+      const { year, month } = parseMonthKey(state.monthKey);
+      if (account.firstPayDate && account.firstPayDate.slice(0, 7) === state.monthKey) {
+        return account.firstPayDate;
+      }
+      return ymd(year, month, account.dueDay || 1);
+    }
+    function groceryWeeks() {
+      const room = num(state.settings.groceriesWeekly);
+      const current = monthState();
+      const { year, month } = parseMonthKey(state.monthKey);
+      const rows = [];
+      for (let d = 1; d <= daysInMonth(year, month); d++) {
+        if (new Date(year, month, d).getDay() !== 6) continue;
+        const date = ymd(year, month, d);
+        const typed = current.grocerySpend[date];
+        rows.push({
+          date,
+          amount: typed === "" || typed == null ? 0 : num(typed),
+          typed: typed ?? "",
+          room,
+        });
+      }
+      return rows;
+    }
+    function ensureSends(accountId) {
+      const current = monthState();
+      if (!Array.isArray(current.sends[accountId])) {
+        const old = current.contribute[accountId];
+        if (old != null && old !== "" && typeof old !== "object") {
+          current.sends[accountId] = [{
+            id: uid("send"),
+            date: defaultDateInMonth(),
+            amount: String(old),
+            sent: !!current.paid[accountId],
+          }];
+        } else {
+          current.sends[accountId] = [];
+        }
+      }
+      return current.sends[accountId];
+    }
+    function tracksBalance(key) {
+      return BALANCE_KEYS.includes(key);
+    }
+    function roundMoney(n) {
+      return Math.round(Math.max(0, n) * 100) / 100;
+    }
+    function scheduledAmount(account) {
+      if (!isFixed(account)) return 0;
+      return account.tracksBalance ? num(account.fixedPay) : num(account.amount);
+    }
+    function contributeAmount(account) {
+      const extras = ensureSends(account.id).reduce((sum, row) => sum + num(row.amount), 0);
+      return scheduledAmount(account) + extras;
+    }
+    function sentToward(account) {
+      const current = monthState();
+      let total = 0;
+      if (isFixed(account) && current.paid[account.id]) total += scheduledAmount(account);
+      total += ensureSends(account.id).filter((row) => row.sent).reduce((sum, row) => sum + num(row.amount), 0);
+      return total;
+    }
+    function allAccounts() {
+      const rows = [];
+      for (const item of state.settings.rent || []) {
+        rows.push({ ...item, group: "Rent", name: item.name || "Rent", dueDay: day(item.dueDay, 1), tracksBalance: false, kind: itemKind(item, "rent"), key: "rent" });
+      }
+      for (const item of state.settings.utilities || []) {
+        rows.push({ ...item, group: "Utilities", name: item.name || "Utility", dueDay: day(item.dueDay, 1), tracksBalance: false, kind: itemKind(item, "utilities"), key: "utilities" });
+      }
+      for (const item of state.settings.carInsurance || []) {
+        rows.push({ ...item, group: "Car", name: item.name || "Car insurance", dueDay: day(item.dueDay, 15), tracksBalance: false, kind: itemKind(item, "carInsurance"), key: "carInsurance" });
+      }
+      const labels = {
+        creditCards: "Credit card",
+        studentLoans: "Student loan",
+        carFinance: "Car finance",
+        otherLoans: "Loan",
+      };
+      for (const key of DEBT_KEYS) {
+        for (const item of state.settings[key] || []) {
+          rows.push({
+            ...item,
+            group: labels[key],
+            name: item.name || labels[key],
+            dueDay: day(item.dueDay, 1),
+            tracksBalance: true,
+            kind: itemKind(item, key),
+            key,
+          });
+        }
+      }
+      for (const item of state.settings.personal || []) {
+        rows.push({
+          ...item,
+          group: "Personal",
+          name: item.name || "Personal",
+          dueDay: day(item.dueDay, 1),
+          tracksBalance: true,
+          kind: itemKind(item, "personal"),
+          key: "personal",
+        });
+      }
+      return rows.sort((a, b) => a.dueDay - b.dueDay);
+    }
+    function allDebts() {
+      return allAccounts().filter((row) => !["rent", "utilities", "carInsurance", "personal"].includes(row.key));
+    }
+    function applyBalance(id) {
+      const found = findItem(id);
+      if (!found || !tracksBalance(found.key)) return;
+      const current = monthState();
+      const account = allAccounts().find((row) => row.id === id);
+      if (!account) return;
+      const should = sentToward(account);
+      const already = num(current.applied[id]);
+      const delta = should - already;
+      if (delta === 0) return;
+      found.item.amount = String(roundMoney(num(found.item.amount) - delta));
+      if (should > 0) current.applied[id] = should;
+      else delete current.applied[id];
+    }
+    function formatDay1(value) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || "").trim());
+      if (!match) return "";
+      const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+      return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    }
+    function amortizePayment(principal, aprPercent, months) {
+      const p = Math.max(0, principal);
+      const n = Math.max(0, Math.round(months));
+      if (p <= 0 || n <= 0) return { payment: 0, totalPaid: 0, interest: 0 };
+      const r = (aprPercent / 100) / 12;
+      if (r <= 0) {
+        return { payment: p / n, totalPaid: p, interest: 0 };
+      }
+      const pow = Math.pow(1 + r, n);
+      const payment = p * r * pow / (pow - 1);
+      const totalPaid = payment * n;
+      return { payment, totalPaid, interest: Math.max(0, totalPaid - p) };
+    }
+    function planText(item) {
+      const owe = num(item.amount);
+      if (owe <= 0) return "You do not owe a remaining balance.";
+      const goal = num(item.goalAmount) > 0 ? num(item.goalAmount) : owe;
+      const months = Math.round(num(item.goalMonths));
+      const aprRaw = String(item.apr ?? "").trim();
+      const apr = num(item.apr);
+      const day1 = formatDay1(item.firstPayDate);
+      const start = day1 ? `Day 1 is ${day1}. ` : "";
+      if (months <= 0) {
+        return `${start}You owe ${money(owe)}. Enter how many months to see the amortizing payment.`;
+      }
+      const plan = amortizePayment(goal, aprRaw === "" ? 0 : apr, months);
+      let text = `${start}You owe ${money(owe)}. To pay off ${money(goal)} over ${months} months`;
+      if (aprRaw === "") {
+        text += ` with no APR, the payment is ${money(plan.payment)} each month (amount ÷ months).`;
+      } else {
+        text += ` at ${apr.toFixed(2)}% APR, the payment is ${money(plan.payment)} each month. That payment already includes interest for the whole ${months}-month term: you pay ${money(plan.totalPaid)} in total, of which ${money(plan.interest)} is interest.`;
+      }
+      text += " If you refinance, enter the new APR and this payment changes. The old rate is not kept.";
+      const leftover = Math.max(0, owe - goal);
+      if (leftover > 0.005) text += ` After the goal, ${money(leftover)} would still be left.`;
+      return text;
+    }
+    function payoffMath(balance, apr, payment) {
+      const b = Math.max(0, balance);
+      const p = Math.max(0, payment);
+      if (b <= 0) return { months: 0, interest: 0, date: "Paid off" };
+      if (p <= 0) return { months: null, interest: null, date: "No payment" };
+      const r = (apr / 100) / 12;
+      if (r <= 0) {
+        const months = Math.ceil(b / p);
+        return { months, interest: 0, date: addMonths(months) };
+      }
+      if (p <= b * r + 0.005) return { months: null, interest: null, date: "Payment does not cover interest" };
+      const months = Math.ceil(Math.log(p / (p - b * r)) / Math.log(1 + r));
+      const totalPaid = p * months;
+      return { months, interest: Math.max(0, totalPaid - b), date: addMonths(months) };
+    }
+    function addMonths(n) {
+      const { year, month } = parseMonthKey(state.monthKey);
+      const d = new Date(year, month + n, 1);
+      return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    }
+
+    function monthOptions() {
+      const select = document.getElementById("monthKey");
+      select.innerHTML = "";
+      for (let i = 0; i < 18; i++) {
+        const d = new Date(2026, 9 + i, 1);
+        const opt = document.createElement("option");
+        opt.value = monthKeyOf(d.getFullYear(), d.getMonth());
+        opt.textContent = monthLabel(d.getFullYear(), d.getMonth());
+        select.appendChild(opt);
+      }
+      select.value = state.monthKey;
+    }
+
+    function setTab(tab) {
+      document.querySelectorAll(".tab").forEach((el) => el.classList.toggle("on", el.dataset.tab === tab));
+      document.getElementById("view-month").classList.toggle("hidden", tab !== "month");
+      document.getElementById("view-settings").classList.toggle("hidden", tab !== "settings");
+      if (tab === "settings") {
+        renderSettingsForms();
+        renderPayoff();
+      } else {
+        renderPaychecks();
+        renderMonth();
+      }
+    }
+
+    function monthFlow() {
+      const current = monthState();
+      const rows = [];
+      for (const g of groceryWeeks()) {
+        rows.push({
+          key: "grocery-" + g.date,
+          date: g.date,
+          name: "Groceries",
+          amount: g.amount,
+          typed: g.typed,
+          room: g.room,
+          sent: !!current.groceryPaid[g.date],
+          kind: "grocery",
+          editable: false,
+        });
+      }
+      for (const fill of current.gasFills || []) {
+        rows.push({
+          key: fill.id,
+          date: fill.date || defaultDateInMonth(),
+          name: "Gas",
+          amount: num(fill.amount),
+          typed: fill.amount || "",
+          room: num(state.settings.gasRoom),
+          sent: !!fill.sent,
+          kind: "gas",
+          fillId: fill.id,
+          editable: true,
+        });
+      }
+      for (const account of allAccounts()) {
+        const sched = scheduledAmount(account);
+        if (sched > 0) {
+          rows.push({
+            key: "sched-" + account.id,
+            date: scheduledDate(account),
+            name: account.name,
+            amount: sched,
+            sent: !!current.paid[account.id],
+            kind: "sched",
+            accountId: account.id,
+            editable: false,
+          });
+        }
+        for (const slice of ensureSends(account.id)) {
+          rows.push({
+            key: slice.id,
+            date: slice.date || defaultDateInMonth(),
+            name: account.name,
+            amount: num(slice.amount),
+            sent: !!slice.sent,
+            kind: "send",
+            accountId: account.id,
+            sliceId: slice.id,
+            editable: true,
+          });
+        }
+      }
+      rows.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+      return rows;
+    }
+    function addDaysStamp(stamp, n) {
+      const [y, mo, d] = String(stamp).split("-").map(Number);
+      const dt = new Date(y, mo - 1, d + n);
+      return ymd(dt.getFullYear(), dt.getMonth(), dt.getDate());
+    }
+    function biweeklyStart() {
+      return state.settings.biweeklyStart || "2026-10-02";
+    }
+    function shortDate(stamp) {
+      if (!stamp) return "";
+      return new Date(stamp + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    }
+    function recurringDatesInMonth(origin, stepDays, year, month) {
+      const monthStart = ymd(year, month, 1);
+      const monthEnd = ymd(year, month, daysInMonth(year, month));
+      const dates = [];
+      let cursor = origin;
+      while (cursor < monthStart) cursor = addDaysStamp(cursor, stepDays);
+      while (cursor <= monthEnd) {
+        dates.push(cursor);
+        cursor = addDaysStamp(cursor, stepDays);
+      }
+      return dates;
+    }
+    function paySlotsInMonth(year, month) {
+      const last = daysInMonth(year, month);
+      const slots = [];
+      for (const dayNum of (state.settings.mainPayDays || [5, 20]).map(Number)) {
+        if (dayNum > last) continue;
+        slots.push({
+          date: ymd(year, month, dayNum),
+          source: "Main job",
+          slot: "main-" + dayNum,
+        });
+      }
+      const origin = biweeklyStart();
+      for (const date of recurringDatesInMonth(origin, 14, year, month)) {
+        slots.push({
+          date,
+          source: "Second job",
+          slot: "biweekly-" + date,
+        });
+      }
+      slots.sort((a, b) => String(a.date).localeCompare(String(b.date)) || String(a.slot).localeCompare(String(b.slot)));
+      return slots;
+    }
+    function ensureScheduledPaychecks() {
+      const { year, month } = parseMonthKey(state.monthKey);
+      const current = monthState();
+      const slots = paySlotsInMonth(year, month);
+      const wanted = new Set(slots.map((s) => s.slot));
+      let changed = false;
+      current.paychecks = current.paychecks.filter((p) => {
+        if (!p.locked) return true;
+        if (p.slot && wanted.has(p.slot)) return true;
+        if (!p.slot && slots.some((s) => s.date === p.date)) return true;
+        changed = true;
+        return false;
+      });
+      for (const slot of slots) {
+        const existing = current.paychecks.find((p) => p.slot === slot.slot)
+          || current.paychecks.find((p) => p.locked && p.date === slot.date && !p.slot);
+        if (existing) {
+          if (existing.date !== slot.date || existing.source !== slot.source || existing.slot !== slot.slot || !existing.locked) {
+            existing.date = slot.date;
+            existing.source = slot.source;
+            existing.slot = slot.slot;
+            existing.locked = true;
+            changed = true;
+          }
+          continue;
+        }
+        current.paychecks.push({
+          id: uid("pay"),
+          date: slot.date,
+          amount: "",
+          source: slot.source,
+          slot: slot.slot,
+          locked: true,
+        });
+        changed = true;
+      }
+      current.paychecks.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+      if (changed) save("quiet");
+    }
+    function paycheckPlan() {
+      ensureScheduledPaychecks();
+      const checks = (monthState().paychecks || [])
+        .filter((p) => p.date)
+        .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+      const groups = [];
+      const byDate = new Map();
+      for (const check of checks) {
+        let group = byDate.get(check.date);
+        if (!group) {
+          group = { date: check.date, checks: [], items: [], source: "", amount: 0 };
+          byDate.set(check.date, group);
+          groups.push(group);
+        }
+        group.checks.push(check);
+      }
+      for (const group of groups) {
+        group.source = [...new Set(group.checks.map((c) => c.source).filter(Boolean))].join(" + ") || "Paycheck";
+        group.amount = group.checks.reduce((sum, c) => sum + num(c.amount), 0);
+      }
+      const before = [];
+      for (const item of monthFlow()) {
+        if (num(item.amount) <= 0) continue;
+        let assigned = null;
+        for (const group of groups) {
+          if (group.date <= item.date) assigned = group;
+        }
+        if (assigned) assigned.items.push(item);
+        else before.push(item);
+      }
+      return { before, groups };
+    }
+    function prettyDate(value) {
+      if (!value) return "";
+      return new Date(value + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+    }
+    function todayStamp() {
+      const n = new Date();
+      return ymd(n.getFullYear(), n.getMonth(), n.getDate());
+    }
+    function monthTotals() {
+      const current = monthState();
+      const accounts = allAccounts();
+      const flow = monthFlow();
+      const received = (current.paychecks || []).reduce((sum, p) => sum + num(p.amount), 0);
+      const planned = flow.reduce((sum, row) => sum + num(row.amount), 0);
+      const pending = flow.filter((row) => !row.sent).reduce((sum, row) => sum + num(row.amount), 0);
+      return { current, accounts, flow, received, planned, pending, spend: received - planned };
+    }
+    function renderNextUp() {
+      const { before, groups } = paycheckPlan();
+      const today = todayStamp();
+      const upcomingCheck = groups.find((g) => g.date >= today) || groups[0];
+      const pending = [...before, ...groups.flatMap((g) => g.items)]
+        .filter((item) => !item.sent)
+        .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+      const nextDate = (pending.find((item) => item.date >= today) || pending[0])?.date;
+      const upcomingBills = nextDate ? pending.filter((item) => item.date === nextDate) : [];
+      const checkHtml = upcomingCheck
+        ? `<div><div class="meta">Next paycheck</div><div class="big">${prettyDate(upcomingCheck.date)}</div><div class="meta">${upcomingCheck.source || "Paycheck"}${upcomingCheck.amount ? " · " + money(upcomingCheck.amount) : " · enter the amount below"}</div></div>`
+        : `<div><div class="meta">Next paycheck</div><div class="caption">No paycheck dates this month.</div></div>`;
+      let billHtml = `<div><div class="meta">Next payment to make</div><div class="caption">Nothing pending.</div></div>`;
+      if (upcomingBills.length) {
+        const sample = upcomingBills[0];
+        const host = groups.find((g) => g.items.includes(sample));
+        const from = host
+          ? `Pay this from the ${prettyDate(host.date)} ${host.source || "paycheck"}`
+          : `This is due before your first paycheck. Use cash on hand.`;
+        const names = upcomingBills.map((row) => `${escapeHtml(row.name)} · ${money(row.amount)}`).join("<br>");
+        billHtml = `<div><div class="meta">Next payment to make</div><div class="big">${prettyDate(sample.date)}</div><div class="meta">${names}</div><div class="caption">${from}</div></div>`;
+      }
+      document.getElementById("nextUp").innerHTML = checkHtml + billHtml;
+    }
+    function renderPlan() {
+      const { before, groups } = paycheckPlan();
+      let html = "";
+      if (before.length) {
+        const total = before.reduce((sum, row) => sum + num(row.amount), 0);
+        const firstPay = groups[0]?.date;
+        const beforeLabel = firstPay ? prettyDate(firstPay) : "the first paycheck";
+        html += `<div class="pack">
+          <div class="who">Before the first paycheck</div>
+          <div class="caption">Due before ${beforeLabel}. Use cash already on hand — this is not coming from the next check.</div>
+          <ul>${before.map((row) => `<li>${prettyDate(row.date)} · ${escapeHtml(row.name)} · ${money(row.amount)}</li>`).join("")}</ul>
+          <div class="meta">Need ${money(total)} on hand before ${beforeLabel}.</div>
+        </div>`;
+      }
+      html += groups.map((group) => {
+        const got = num(group.amount);
+        const due = group.items.reduce((sum, row) => sum + num(row.amount), 0);
+        const left = got - due;
+        const items = group.items.length
+          ? `<ul>${group.items.map((row) => `<li>${prettyDate(row.date)} · ${escapeHtml(row.name)} · ${money(row.amount)}</li>`).join("")}</ul>`
+          : `<p class="caption">Nothing assigned to this check. Hold it for later or spend.</p>`;
+        return `<div class="pack">
+          <div class="who">${prettyDate(group.date)} · ${escapeHtml(group.source || "Paycheck")}</div>
+          <div class="caption">This check ${got ? "is " + money(got) : "needs an amount in In"} · pay ${money(due)} from it${got ? " · " + (left >= 0 ? "left " + money(left) : "short " + money(-left)) : ""}</div>
+          ${items}
+        </div>`;
+      }).join("");
+      document.getElementById("plan").innerHTML = html || `<p class="empty">Paydays are not set.</p>`;
+    }
+    function renderHero() {
+      const { received, planned, pending, spend } = monthTotals();
+      const short = spend < 0;
+      document.getElementById("hero").innerHTML = `
+        <div>
+          <div class="big ${short ? "bad" : "good"}">${money(Math.max(0, spend))}</div>
+          <div class="meta">${short ? "Short " + money(-spend) : "You can spend"}</div>
+        </div>
+        <div class="meta">Got ${money(received)}</div>
+        <div class="meta">Send ${money(planned)}</div>
+        <div class="meta ${pending > 0 ? "warn" : ""}">Pending ${money(pending)}</div>
+      `;
+      renderCardTarget();
+      if (typeof renderInsights === "function") renderInsights();
+    }
+    function cardThirtyNeed(item) {
+      const limit = num(item.limit);
+      const used = num(item.amount);
+      if (limit <= 0) return { ok: false, used };
+      const cap = roundMoney(limit * 0.3);
+      const need = roundMoney(Math.max(0, used - cap));
+      const planned = contributeAmount({ ...item, tracksBalance: true, key: "creditCards" });
+      return {
+        ok: true,
+        used,
+        limit,
+        cap,
+        need,
+        planned,
+        still: roundMoney(Math.max(0, need - planned)),
+        pct: Math.round((used / limit) * 100),
+      };
+    }
+    function renderCardTarget() {
+      const el = document.getElementById("cardTarget");
+      if (!el) return;
+      const cards = state.settings.creditCards || [];
+      if (!cards.length) {
+        el.innerHTML = `<p class="empty">No credit cards in Settings.</p>`;
+        return;
+      }
+      let totalNeed = 0;
+      let ready = true;
+      const rows = cards.map((card) => {
+        const t = cardThirtyNeed(card);
+        if (!t.ok) {
+          ready = false;
+          return `<div class="pack">
+            <div class="who">${escapeHtml(card.name || "Card")}</div>
+            <div class="caption">Add the credit limit in Settings to see the 30% number.</div>
+          </div>`;
+        }
+        totalNeed += t.need;
+        if (t.need <= 0) {
+          return `<div class="pack">
+            <div class="who">${escapeHtml(card.name || "Card")} · ${t.pct}%</div>
+            <div class="caption">Used ${money(t.used)} of ${money(t.limit)}. Already at or under 30%. Nothing extra to send.</div>
+          </div>`;
+        }
+        const plannedNote = t.planned > 0
+          ? ` This month already has ${money(t.planned)} headed there, so ${money(t.still)} is still needed.`
+          : "";
+        return `<div class="pack">
+          <div class="who">${escapeHtml(card.name || "Card")} · ${t.pct}%</div>
+          <div class="big">${money(t.need)}</div>
+          <div class="caption">Send this to take used from ${money(t.used)} down to ${money(t.cap)} (30% of ${money(t.limit)}).${plannedNote}</div>
+        </div>`;
+      }).join("");
+      const total = ready && cards.length
+        ? `<div class="meta">${cards.length > 1 ? "All cards: send " + money(totalNeed) + " to reach 30%." : ""}</div>`
+        : "";
+      el.innerHTML = rows + total;
+    }
+    function leftoverNote(account) {
+      if (!account.tracksBalance) return "";
+      const left = num(account.amount);
+      const sent = sentToward(account);
+      const planned = contributeAmount(account);
+      if (sent > 0) return `Left ${money(left)} after sends marked Sent`;
+      if (planned > 0) return `Would leave ${money(roundMoney(left - planned))}`;
+      return `Left ${money(left)}`;
+    }
+    function fillAddSendAccount() {
+      const select = document.getElementById("addSendAccount");
+      if (!select) return;
+      const current = select.value;
+      select.innerHTML = allAccounts().map((a) =>
+        `<option value="${a.id}">${escapeHtml(a.name)}</option>`
+      ).join("");
+      if (current && [...select.options].some((o) => o.value === current)) select.value = current;
+    }
+    function renderSends() {
+      const flow = monthFlow();
+      fillAddSendAccount();
+      if (!flow.length) {
+        document.getElementById("payments").innerHTML = `<p class="empty">Add a send date, or type a Saturday grocery trip.</p>`;
+        return;
+      }
+      const accounts = allAccounts();
+      const rows = flow.map((row) => {
+        const account = row.accountId ? accounts.find((a) => a.id === row.accountId) : null;
+        const extra = row.kind === "grocery"
+          ? `Room ${money(row.room)} this Saturday — only what you type is planned`
+          : row.kind === "gas"
+          ? `Room ${money(row.room)} per fill — only this trip is planned`
+          : account ? leftoverNote(account) : "";
+        const dateCell = row.kind === "gas"
+          ? `<input type="date" data-gas="${row.fillId}" data-gk="date" value="${escapeAttr(row.date)}" />`
+          : row.editable
+          ? `<input type="date" data-slice="${row.sliceId}" data-sk="date" value="${escapeAttr(row.date)}" />`
+          : new Date(row.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        const amountCell = row.kind === "grocery"
+          ? `<input type="number" min="0" step="0.01" data-groc-amt="${row.date}" value="${row.typed || ""}" placeholder="0" />`
+          : row.kind === "gas"
+          ? `<input type="number" min="0" step="0.01" data-gas="${row.fillId}" data-gk="amount" value="${row.typed || ""}" placeholder="0" />`
+          : row.editable
+          ? `<input type="number" min="0" step="0.01" data-slice="${row.sliceId}" data-sk="amount" value="${row.amount || ""}" />`
+          : money(row.amount);
+        const sentAttr = row.kind === "grocery"
+          ? `data-groc-paid="${row.date}"`
+          : row.kind === "gas"
+            ? `data-gas-sent="${row.fillId}"`
+          : row.kind === "sched"
+            ? `data-paid="${row.accountId}"`
+            : `data-slice-sent="${row.sliceId}"`;
+        const remove = row.kind === "gas"
+          ? `<button type="button" class="ghost" data-del-gas="${row.fillId}">Remove</button>`
+          : row.editable
+          ? `<button type="button" class="ghost" data-del-slice="${row.sliceId}">Remove</button>`
+          : "";
+        return `<tr class="${row.sent ? "done" : ""}">
+          <td>${dateCell}</td>
+          <td>${escapeHtml(row.name)}${extra ? `<div class="caption" style="margin:0" ${row.accountId ? `data-left="${row.accountId}"` : ""}>${extra}</div>` : ""}</td>
+          <td class="num">${amountCell}</td>
+          <td><label class="sent-check"><input type="checkbox" ${sentAttr} ${row.sent ? "checked" : ""} /> Sent</label></td>
+          <td>${remove}</td>
+        </tr>`;
+      }).join("");
+      document.getElementById("payments").innerHTML = `
+        <table class="pay-table">
+          <thead><tr><th>Date</th><th>To</th><th class="num">Amount</th><th></th><th></th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function renderPaychecks() {
+      ensureScheduledPaychecks();
+      const current = monthState();
+      if (!current.paychecks.length) {
+        document.getElementById("paychecks").innerHTML = `<p class="empty">No paychecks yet.</p>`;
+        return;
+      }
+      document.getElementById("paychecks").innerHTML = current.paychecks.map((p) => `
+        <div class="line">
+          <input type="date" data-pay="${p.id}" data-k="date" value="${p.date || ""}" ${p.locked ? "readonly" : ""} />
+          <input type="number" min="0" step="0.01" data-pay="${p.id}" data-k="amount" value="${p.amount || ""}" placeholder="${p.source || "Amount"}" />
+          ${p.locked ? `<span class="caption" style="margin:0">${escapeHtml(p.source || "")}</span>` : `<button type="button" class="ghost" data-del-pay="${p.id}">Remove</button>`}
+        </div>
+      `).join("");
+    }
+
+    function renderMonth() {
+      ensureScheduledPaychecks();
+      renderNextUp();
+      renderHero();
+      renderPlan();
+      renderPaychecks();
+      renderSends();
+    }
+
+    function modeButtons(item) {
+      const kind = item.kind === "fixed" ? "fixed" : "variable";
+      return `
+        <div>
+          <label>Each month</label>
+          <div class="mode">
+            <button type="button" class="${kind === "fixed" ? "" : "ghost"}" data-set-kind="${item.id}" data-kind-value="fixed">Fixed</button>
+            <button type="button" class="${kind === "variable" ? "" : "ghost"}" data-set-kind="${item.id}" data-kind-value="variable">Variable</button>
+          </div>
+        </div>
+      `;
+    }
+    function billFields(item) {
+      const amountField = isFixed(item)
+        ? `<div><label>Pays every month</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="amount" value="${escapeAttr(item.amount)}" /></div>`
+        : "";
+      return `
+        <div class="row bill-row ${isFixed(item) ? "" : "variable"}">
+          <div><label>Name</label><input data-item="${item.id}" data-k="name" value="${escapeAttr(item.name)}" /></div>
+          ${amountField}
+          <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
+          ${modeButtons(item)}
+          <button type="button" class="ghost" data-del="${item.id}">Remove</button>
+        </div>
+      `;
+    }
+    function cardUtil(item) {
+      const limit = num(item.limit);
+      const used = num(item.amount);
+      if (limit <= 0) return { text: "—", cls: "meta" };
+      const pct = (used / limit) * 100;
+      const cls = pct >= 70 ? "bad" : pct >= 30 ? "warn" : "good";
+      return { text: Math.round(pct) + "%", cls };
+    }
+    function cardFields(item) {
+      const payField = isFixed(item)
+        ? `<div><label>Pays every month</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="fixedPay" value="${escapeAttr(item.fixedPay || "")}" /></div>`
+        : "";
+      const util = cardUtil(item);
+      return `
+        <div class="row card-row">
+          <div><label>Name</label><input data-item="${item.id}" data-k="name" value="${escapeAttr(item.name)}" /></div>
+          <div><label>Credit you have</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="limit" value="${escapeAttr(item.limit || "")}" placeholder="Limit" /></div>
+          <div><label>Credit you have used</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="amount" value="${escapeAttr(item.amount)}" /></div>
+          <div><label>Used</label><div class="util ${util.cls}" data-util="${item.id}">${util.text}</div></div>
+          <div><label>APR %</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="apr" value="${escapeAttr(item.apr)}" /></div>
+          <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
+          ${payField}
+          ${modeButtons(item)}
+          <button type="button" class="ghost" data-del="${item.id}">Remove</button>
+        </div>
+      `;
+    }
+    function debtFields(item) {
+      const payField = isFixed(item)
+        ? `<div><label>Pays every month</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="fixedPay" value="${escapeAttr(item.fixedPay || "")}" /></div>`
+        : "";
+      return `
+        <div class="row debt-row">
+          <div><label>Name</label><input data-item="${item.id}" data-k="name" value="${escapeAttr(item.name)}" /></div>
+          <div><label>Amount left</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="amount" value="${escapeAttr(item.amount)}" /></div>
+          <div><label>APR %</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="apr" value="${escapeAttr(item.apr)}" /></div>
+          <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
+          ${payField}
+          ${modeButtons(item)}
+          <button type="button" class="ghost" data-del="${item.id}">Remove</button>
+        </div>
+      `;
+    }
+    function goalDebtFields(item) {
+      const payField = isFixed(item)
+        ? `<div><label>Pays every month</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="fixedPay" value="${escapeAttr(item.fixedPay || "")}" /></div>`
+        : "";
+      return `
+        <div class="debt-block">
+          <div class="row debt-row">
+            <div><label>Name</label><input data-item="${item.id}" data-k="name" value="${escapeAttr(item.name)}" /></div>
+            <div><label>Amount you owe now</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="amount" value="${escapeAttr(item.amount)}" /></div>
+            <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
+            ${payField}
+            ${modeButtons(item)}
+            <button type="button" class="ghost" data-del="${item.id}">Remove</button>
+          </div>
+          <div class="row start-row">
+            <div>
+              <label>Day 1 — first payment date</label>
+              <input type="date" data-item="${item.id}" data-k="firstPayDate" value="${escapeAttr(item.firstPayDate || "")}" />
+            </div>
+            <div>
+              <label>Current APR % — ask again if you refinance</label>
+              <input type="number" min="0" step="0.01" data-item="${item.id}" data-k="apr" value="${escapeAttr(item.apr)}" placeholder="Leave blank if none" />
+            </div>
+          </div>
+          <div class="row goal-row">
+            <div><label>Clear this amount</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="goalAmount" value="${escapeAttr(item.goalAmount || item.amount)}" /></div>
+            <div><label>In this many months</label><input type="number" min="1" step="1" data-item="${item.id}" data-k="goalMonths" value="${escapeAttr(item.goalMonths || "")}" /></div>
+          </div>
+          <p class="plan" data-plan="${item.id}">${escapeHtml(planText(item))}</p>
+        </div>
+      `;
+    }
+    function findItem(id) {
+      for (const key of ALL_KEYS) {
+        const list = state.settings[key] || [];
+        const item = list.find((row) => row.id === id);
+        if (item) return { key, item };
+      }
+      return null;
+    }
+    function personalFields(item) {
+      const payField = isFixed(item)
+        ? `<div><label>Pays every month</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="fixedPay" value="${escapeAttr(item.fixedPay || "")}" /></div>`
+        : "";
+      return `
+        <div class="row bill-row">
+          <div><label>Name</label><input data-item="${item.id}" data-k="name" value="${escapeAttr(item.name)}" /></div>
+          <div><label>Amount left</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="amount" value="${escapeAttr(item.amount)}" /></div>
+          <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
+          ${payField}
+          ${modeButtons(item)}
+          <button type="button" class="ghost" data-del="${item.id}">Remove</button>
+        </div>
+      `;
+    }
+    function claudeState() {
+      if (!state.settings.claude) state.settings.claude = { model: "claude-sonnet-4-6", keys: [] };
+      if (!Array.isArray(state.settings.claude.keys)) state.settings.claude.keys = [];
+      return state.settings.claude;
+    }
+    function liveKeys() {
+      const rows = claudeState().keys.filter((row) => row.key && row.status !== "exhausted" && row.status !== "invalid");
+      return [...rows].sort((a, b) => {
+        const rank = (status) => (status === "rate_limited" ? 1 : 0);
+        return rank(a.status) - rank(b.status);
+      });
+    }
+    function maskKey(value) {
+      const raw = String(value || "");
+      if (raw.length < 8) return raw ? "••••" : "";
+      return raw.slice(0, 7) + "…" + raw.slice(-4);
+    }
+    function fillModelSelects() {
+      const current = claudeState().model || "claude-sonnet-4-6";
+      for (const id of ["claudeModel", "chatModel"]) {
+        const select = document.getElementById(id);
+        if (!select) continue;
+        select.innerHTML = CLAUDE_MODELS.map((m) =>
+          `<option value="${m.id}" ${m.id === current ? "selected" : ""}>${escapeHtml(m.label)}</option>`
+        ).join("");
+        if (![...select.options].some((o) => o.value === current)) {
+          const extra = document.createElement("option");
+          extra.value = current;
+          extra.textContent = current;
+          extra.selected = true;
+          select.appendChild(extra);
+        }
+      }
+    }
+    function keyStatusLabel(row) {
+      if (row.status === "exhausted") return "Spent — removed from rotation";
+      if (row.status === "invalid") return "Bad key — removed from rotation";
+      if (row.status === "rate_limited") return "Rate limited — skipped for now";
+      return "In rotation";
+    }
+    function renderApiKeys() {
+      const list = claudeState().keys;
+      const box = document.getElementById("apiKeys");
+      if (!box) return;
+      fillModelSelects();
+      if (!list.length) {
+        box.innerHTML = `<p class="empty">No keys yet. Add each Claude API key you want in the pool.</p>`;
+        return;
+      }
+      box.innerHTML = list.map((row, i) => `
+        <div class="row key-row">
+          <div><label>Name</label><input data-api="${row.id}" data-ak="label" value="${escapeAttr(row.label || "Key " + (i + 1))}" /></div>
+          <div><label>API key</label><input type="password" autocomplete="off" data-api="${row.id}" data-ak="key" value="${escapeAttr(row.key || "")}" placeholder="sk-ant-…" /></div>
+          <div>
+            <label>Status</label>
+            <div class="api-status ${row.status === "exhausted" || row.status === "invalid" ? "bad" : row.status === "rate_limited" ? "warn" : "good"}">${keyStatusLabel(row)}</div>
+          </div>
+          ${row.status && row.status !== "active" ? `<button type="button" class="ghost" data-api-revive="${row.id}">Use again</button>` : `<span></span>`}
+          <button type="button" class="ghost" data-api-del="${row.id}">Remove</button>
+        </div>
+        <div class="caption">${row.key ? "Saved as " + escapeHtml(maskKey(row.key)) : "Paste the full key."}</div>
+      `).join("");
+    }
+    const WEB_SEARCH = {
+      type: "web_search_20250305",
+      name: "web_search",
+      max_uses: 3,
+      user_location: { type: "approximate", country: "US" },
+    };
+    const CLAUDE_TOOLS = [
+      {
+        name: "set_paycheck",
+        description: "Create or change a paycheck in the In block. Use mode add to increase an existing check (for 'add $200 to my paycheck'). Use next for the upcoming payday if no date is given.",
+        input_schema: {
+          type: "object",
+          properties: {
+            date: { type: "string", description: "YYYY-MM-DD, day number like 5, or next" },
+            amount: { type: "number", description: "Dollars to set or add" },
+            mode: { type: "string", enum: ["set", "add"], description: "set replaces the amount; add increases it" },
+            source: { type: "string", description: "Main job, Second job, or a label" },
+          },
+          required: ["amount"],
+        },
+      },
+      {
+        name: "add_send",
+        description: "Add a dated outflow in the Out block to an account (loan, card, rent, personal, utility).",
+        input_schema: {
+          type: "object",
+          properties: {
+            account: { type: "string", description: "Account name, like Visa or Student loan" },
+            date: { type: "string", description: "YYYY-MM-DD or day number" },
+            amount: { type: "number" },
+          },
+          required: ["account", "amount"],
+        },
+      },
+      {
+        name: "set_card",
+        description: "Update a credit card limit or used balance in Settings.",
+        input_schema: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            used: { type: "number" },
+            limit: { type: "number" },
+          },
+          required: ["name"],
+        },
+      },
+      {
+        name: "set_weekly_groceries",
+        description: "Set Saturday grocery ROOM in Settings — a ceiling, not five automatic bills.",
+        input_schema: {
+          type: "object",
+          properties: { amount: { type: "number" } },
+          required: ["amount"],
+        },
+      },
+      {
+        name: "set_gas_room",
+        description: "Set the gas fill ROOM in Settings — a ceiling, not an automatic bill.",
+        input_schema: {
+          type: "object",
+          properties: { amount: { type: "number" } },
+          required: ["amount"],
+        },
+      },
+      {
+        name: "add_gas_fill",
+        description: "Log a real gas fill on This month. Use 0 to skip. Date can be YYYY-MM-DD, a day number, or next.",
+        input_schema: {
+          type: "object",
+          properties: {
+            date: { type: "string" },
+            amount: { type: "number" },
+          },
+          required: ["amount"],
+        },
+      },
+      {
+        name: "set_grocery_spend",
+        description: "Log what you actually spent on a Saturday grocery trip. Use 0 or skip a Saturday to keep that money in the paycheck.",
+        input_schema: {
+          type: "object",
+          properties: {
+            date: { type: "string", description: "YYYY-MM-DD, day number, or next Saturday" },
+            amount: { type: "number" },
+          },
+          required: ["amount"],
+        },
+      },
+      {
+        name: "mark_sent",
+        description: "Mark a scheduled bill, grocery Saturday, or send as Sent.",
+        input_schema: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            date: { type: "string" },
+            sent: { type: "boolean" },
+          },
+          required: ["name"],
+        },
+      },
+      {
+        name: "set_account",
+        description: "Change a Settings field on rent, utility, loan, card, or personal payment.",
+        input_schema: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            field: { type: "string", description: "amount, fixedPay, dueDay, apr, limit, kind, goalMonths, goalAmount" },
+            value: { type: "string" },
+          },
+          required: ["name", "field", "value"],
+        },
+      },
+    ];
+    function budgetBrief() {
+      const { received, planned, pending, spend } = monthTotals();
+      const { before, groups } = paycheckPlan();
+      const cards = (state.settings.creditCards || []).map((card) => {
+        const t = cardThirtyNeed(card);
+        if (!t.ok) return `${card.name}: used ${money(num(card.amount))}, no limit set`;
+        return `${card.name}: used ${money(t.used)} of ${money(t.limit)} (${t.pct}%). Send ${money(t.need)} to reach 30%.`;
+      });
+      const checks = (monthState().paychecks || []).map((p) => `${p.date} ${p.source || "Paycheck"} ${p.amount === "" ? "(blank)" : money(num(p.amount))}`);
+      const accounts = allAccounts().map((a) => `${a.name} (${a.key}${a.limit ? ", limit " + a.limit : ""}, used/left ${a.amount || 0})`);
+      const outs = [
+        ...before.map((row) => `Before first check: ${row.date} ${row.name} ${money(row.amount)}`),
+        ...groups.map((g) => `${g.date} ${g.source}: ` + (g.items.map((row) => `${row.name} ${money(row.amount)}`).join("; ") || "nothing assigned")),
+      ];
+      return [
+        `You control this budget app. When the user wants a change, call tools and actually edit the data. Do not only describe the change.`,
+        `If they say add money to a paycheck, call set_paycheck with mode add. If they omit the date, use next. If they omit the amount, ask once.`,
+        `Month ${state.monthKey}. Main job 5th and 20th. Second job biweekly from 2026-10-02. Groceries are optional Saturday trips. Gas is optional fills with a per-fill room. Car insurance is a monthly bill. Settings rooms are ceilings. Only typed grocery/gas amounts leave a paycheck.`,
+        `Paychecks: ${checks.join("; ") || "none"}.`,
+        `Accounts: ${accounts.join("; ")}.`,
+        `Take-home ${money(received)}. Planned out ${money(planned)}. Pending ${money(pending)}. Leftover ${money(spend)}.`,
+        `Cards: ${cards.join(" ") || "none"}.`,
+        `Plan:\n${outs.join("\n")}`,
+      ].join("\n");
+    }
+    function resolveToolDate(value) {
+      const { year, month } = parseMonthKey(state.monthKey);
+      const raw = String(value || "").trim().toLowerCase();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+      if (raw === "" || raw === "next") {
+        const today = todayStamp();
+        const checks = (monthState().paychecks || []).filter((p) => p.date).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+        return (checks.find((p) => p.date >= today) || checks[0] || {}).date || ymd(year, month, 5);
+      }
+      const dayNum = Number(raw);
+      if (dayNum >= 1 && dayNum <= 31) return ymd(year, month, dayNum);
+      return ymd(year, month, 5);
+    }
+    function findAccountByName(name) {
+      const q = String(name || "").toLowerCase().trim();
+      if (!q) return null;
+      const rows = allAccounts();
+      return rows.find((a) => a.id === name)
+        || rows.find((a) => String(a.name).toLowerCase() === q)
+        || rows.find((a) => String(a.name).toLowerCase().includes(q) || q.includes(String(a.name).toLowerCase()));
+    }
+    function refreshAfterTool() {
+      save();
+      renderMonth();
+      if (!document.getElementById("view-settings").classList.contains("hidden")) {
+        renderSettingsForms();
+        renderPayoff();
+      }
+      renderInsights();
+    }
+    function runBudgetTool(name, input) {
+      const args = input || {};
+      if (name === "set_paycheck") {
+        ensureScheduledPaychecks();
+        const date = resolveToolDate(args.date);
+        const mode = args.mode === "add" ? "add" : "set";
+        const current = monthState();
+        let row = current.paychecks.find((p) => p.date === date);
+        if (!row) {
+          row = { id: uid("pay"), date, amount: "", source: args.source || "Paycheck", locked: false };
+          current.paychecks.push(row);
+        }
+        const next = mode === "add" ? num(row.amount) + num(args.amount) : num(args.amount);
+        row.amount = String(roundMoney(next));
+        if (args.source) row.source = args.source;
+        refreshAfterTool();
+        return { ok: true, action: `${mode === "add" ? "Added to" : "Set"} ${date} paycheck to ${money(num(row.amount))}` };
+      }
+      if (name === "add_send") {
+        const account = findAccountByName(args.account);
+        if (!account) return { ok: false, error: "No account matches " + args.account };
+        ensureSends(account.id).push({
+          id: uid("send"),
+          date: resolveToolDate(args.date),
+          amount: String(num(args.amount)),
+          sent: false,
+        });
+        refreshAfterTool();
+        return { ok: true, action: `Added ${money(num(args.amount))} to ${account.name} on ${resolveToolDate(args.date)}` };
+      }
+      if (name === "set_card") {
+        const found = (state.settings.creditCards || []).find((card) => String(card.name).toLowerCase().includes(String(args.name || "").toLowerCase()));
+        if (!found) return { ok: false, error: "No card matches " + args.name };
+        if (args.used != null) found.amount = String(num(args.used));
+        if (args.limit != null) found.limit = String(num(args.limit));
+        refreshAfterTool();
+        return { ok: true, action: `Updated ${found.name}: used ${money(num(found.amount))}${found.limit ? " of " + money(num(found.limit)) : ""}` };
+      }
+      if (name === "set_weekly_groceries") {
+        state.settings.groceriesWeekly = String(num(args.amount));
+        const groc = document.getElementById("groceriesWeekly");
+        if (groc) groc.value = state.settings.groceriesWeekly;
+        refreshAfterTool();
+        return { ok: true, action: `Saturday grocery room set to ${money(num(args.amount))}` };
+      }
+      if (name === "set_grocery_spend") {
+        let date = String(args.date || "").trim();
+        if (!date || date.toLowerCase() === "next") {
+          const today = todayStamp();
+          const sat = groceryWeeks().find((g) => g.date >= today) || groceryWeeks()[0];
+          date = sat ? sat.date : resolveToolDate(args.date);
+        } else {
+          date = resolveToolDate(args.date);
+        }
+        monthState().grocerySpend[date] = String(num(args.amount));
+        refreshAfterTool();
+        return { ok: true, action: `Grocery trip ${date} is ${money(num(args.amount))}` };
+      }
+      if (name === "set_gas_room") {
+        state.settings.gasRoom = String(num(args.amount));
+        const gas = document.getElementById("gasRoom");
+        if (gas) gas.value = state.settings.gasRoom;
+        refreshAfterTool();
+        return { ok: true, action: `Gas fill room set to ${money(num(args.amount))}` };
+      }
+      if (name === "add_gas_fill") {
+        const date = resolveToolDate(args.date);
+        monthState().gasFills.push({
+          id: uid("gas"),
+          date,
+          amount: String(num(args.amount)),
+          sent: false,
+        });
+        refreshAfterTool();
+        return { ok: true, action: `Gas fill ${date} is ${money(num(args.amount))}` };
+      }
+      if (name === "mark_sent") {
+        const sent = args.sent !== false;
+        const flow = monthFlow();
+        const q = String(args.name || "").toLowerCase();
+        const date = args.date ? resolveToolDate(args.date) : "";
+        const row = flow.find((item) => {
+          const nameOk = String(item.name).toLowerCase().includes(q);
+          return nameOk && (!date || item.date === date);
+        });
+        if (!row) return { ok: false, error: "Nothing to mark for " + args.name };
+        if (row.kind === "grocery") monthState().groceryPaid[row.date] = sent;
+        else if (row.kind === "gas") {
+          const fill = monthState().gasFills.find((g) => g.id === row.fillId);
+          if (fill) fill.sent = sent;
+        } else if (row.kind === "sched") {
+          monthState().paid[row.accountId] = sent;
+          applyBalance(row.accountId);
+        } else if (row.sliceId) {
+          const found = findSlice(row.sliceId);
+          if (found) found.slice.sent = sent;
+          applyBalance(row.accountId);
+        }
+        refreshAfterTool();
+        return { ok: true, action: `${sent ? "Marked Sent" : "Unmarked"} ${row.name} on ${row.date}` };
+      }
+      if (name === "set_account") {
+        const account = findAccountByName(args.name);
+        if (!account) return { ok: false, error: "No account matches " + args.name };
+        const found = findItem(account.id);
+        if (!found) return { ok: false, error: "Could not open that account." };
+        const field = String(args.field || "");
+        const allowed = ["amount", "fixedPay", "dueDay", "apr", "limit", "kind", "goalMonths", "goalAmount", "name"];
+        if (!allowed.includes(field)) return { ok: false, error: "Cannot change " + field };
+        found.item[field] = String(args.value);
+        refreshAfterTool();
+        return { ok: true, action: `Set ${account.name} ${field} to ${args.value}` };
+      }
+      return { ok: false, error: "Unknown tool " + name };
+    }
+    function renderInsights() {
+      const el = document.getElementById("chatInsights");
+      if (!el) return;
+      const { received, planned, spend } = monthTotals();
+      const { before, groups } = paycheckPlan();
+      const today = todayStamp();
+      const nextCheck = groups.find((g) => g.date >= today) || groups[0];
+      const pending = [...before, ...groups.flatMap((g) => g.items)].filter((item) => !item.sent).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+      const nextBill = pending.find((item) => item.date >= today) || pending[0];
+      const cards = (state.settings.creditCards || []).map((card) => {
+        const t = cardThirtyNeed(card);
+        if (!t.ok) return `${card.name}: add a limit`;
+        if (t.need <= 0) return `${card.name} is at ${t.pct}%`;
+        return `${card.name}: send ${money(t.need)} to hit 30%`;
+      });
+      el.innerHTML = `
+        <div class="who">Finance insights</div>
+        <div>${nextCheck ? `Next check ${prettyDate(nextCheck.date)} · ${escapeHtml(nextCheck.source)}${nextCheck.amount ? " · " + money(nextCheck.amount) : ""}` : "No paycheck dates."}</div>
+        <div>${nextBill ? `Next out ${prettyDate(nextBill.date)} · ${escapeHtml(nextBill.name)} · ${money(nextBill.amount)}` : "Nothing pending."}</div>
+        <div>This month ${money(received)} in · ${money(planned)} out · ${spend < 0 ? "short " + money(-spend) : "left " + money(spend)}</div>
+        <div>${cards.join(" · ") || "No cards."}</div>
+        <div>${(() => {
+          const weeks = groceryWeeks();
+          const room = weeks.reduce((sum, g) => sum + num(g.room), 0);
+          const used = weeks.reduce((sum, g) => sum + num(g.amount), 0);
+          return `Grocery room left ${money(Math.max(0, room - used))} of ${money(room)} — spend as little as you can`;
+        })()}</div>
+        <div>${(() => {
+          const fills = monthState().gasFills || [];
+          const used = fills.reduce((sum, g) => sum + num(g.amount), 0);
+          const room = num(state.settings.gasRoom);
+          return `Gas this month ${money(used)} · room ${money(room)} per fill`;
+        })()}</div>
+        ${renderAdviceBlock()}
+      `;
+    }
+    function renderAdviceBlock() {
+      const pack = state.chat.advice;
+      if (adviceBusy) return `<div class="caption" style="margin:8px 0 0">Coach is looking for savings…</div>`;
+      if (!pack) return `<div class="caption" style="margin:8px 0 0">Coach is quiet until you open the app, change something, or tap Refresh.</div>`;
+      const offers = (pack.offers || []).filter((o) => o && o.title).map((o) => {
+        const title = o.url ? `<a href="${escapeAttr(o.url)}" target="_blank" rel="noopener">${escapeHtml(o.title)}</a>` : escapeHtml(o.title);
+        return `<div class="offer">${title}${o.save ? " · " + escapeHtml(o.save) : ""}${o.why ? `<div class="caption" style="margin:2px 0 0">${escapeHtml(o.why)}</div>` : ""}</div>`;
+      }).join("");
+      const tips = (pack.advice || []).map((tip) => `<div>• ${escapeHtml(tip)}</div>`).join("");
+      const when = pack.at ? new Date(pack.at).toLocaleString() : "";
+      return `
+        <div class="nudge">${escapeHtml(pack.nudge || "Keep going.")}</div>
+        ${tips}
+        ${offers ? `<div class="who" style="margin-top:10px">Live offers</div>${offers}` : ""}
+        <div class="caption" style="margin:8px 0 0">Updated ${escapeHtml(when)} · ${escapeHtml(pack.reason || "")}</div>
+      `;
+    }
+    function renderChat() {
+      fillModelSelects();
+      renderInsights();
+      const live = liveKeys();
+      const next = live[0];
+      const spent = claudeState().keys.filter((k) => k.status === "exhausted" || k.status === "invalid").length;
+      document.getElementById("chatKeyStatus").textContent = next
+        ? `Using ${next.label || "a key"} (${live.length} live, ${spent} removed). Advice + web deals only on login, a change, or Refresh.`
+        : "Add a Claude key in Settings. Coach stays off until then.";
+      const log = document.getElementById("chatLog");
+      const rows = state.chat.messages || [];
+      if (!rows.length) {
+        log.innerHTML = `<p class="empty">Ask it to change the app: “add $200 to my next paycheck” or “send $900 to Visa on Oct 20.”</p>`;
+        return;
+      }
+      log.innerHTML = rows.map((row) =>
+        `<div class="bubble ${row.role === "user" ? "me" : ""} ${row.role === "action" ? "act" : ""}">${escapeHtml(row.content)}</div>`
+      ).join("");
+      log.scrollTop = log.scrollHeight;
+    }
+    async function callClaudeOnce(thread, opts = {}) {
+      const live = liveKeys();
+      const tools = [];
+      if (opts.edit !== false) tools.push(...CLAUDE_TOOLS);
+      if (opts.web !== false) tools.push(WEB_SEARCH);
+      let lastError = "No key worked.";
+      for (const key of live) {
+        try {
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              apiKey: key.key,
+              model: claudeState().model || "claude-sonnet-4-6",
+              system: budgetBrief(),
+              tools,
+              messages: thread,
+            }),
+          });
+          const data = await res.json();
+          if (data.ok) {
+            key.status = "active";
+            return data;
+          }
+          lastError = data.message || lastError;
+          if (opts.web !== false && /web_search|unknown tool|invalid tool/i.test(String(data.message || ""))) {
+            return callClaudeOnce(thread, { ...opts, web: false });
+          }
+          if (data.reason === "exhausted" || data.reason === "invalid") {
+            key.status = data.reason;
+            continue;
+          }
+          if (data.reason === "rate_limited" || data.reason === "overloaded") {
+            key.status = data.reason === "rate_limited" ? "rate_limited" : key.status;
+            continue;
+          }
+        } catch (err) {
+          return { ok: false, message: "Chat proxy is not reachable. Locally run npm start. On Cloudflare, deploy with npm run cf:deploy." };
+        }
+      }
+      return { ok: false, message: lastError };
+    }
+    function parseAdvice(text) {
+      const match = String(text || "").match(/\{[\s\S]*\}/);
+      if (!match) return { nudge: String(text || "").trim(), advice: [], offers: [] };
+      try {
+        const data = JSON.parse(match[0]);
+        return {
+          nudge: String(data.nudge || "").trim() || "Keep going.",
+          advice: Array.isArray(data.advice) ? data.advice.map(String).slice(0, 6) : [],
+          offers: Array.isArray(data.offers) ? data.offers.slice(0, 5) : [],
+        };
+      } catch {
+        return { nudge: String(text || "").trim(), advice: [], offers: [] };
+      }
+    }
+    async function refreshAdvice(reason) {
+      if (adviceBusy || !liveKeys().length) {
+        renderInsights();
+        return;
+      }
+      adviceBusy = true;
+      const btn = document.getElementById("adviceRefresh");
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Looking…";
+      }
+      renderInsights();
+      const data = await callClaudeOnce([{
+        role: "user",
+        content: `The user ${reason === "login" ? "just opened the app" : reason === "change" ? "just changed the budget" : "tapped Refresh"}. Search the live web for current US grocery deals, credit-card 0% transfers or fee-free savings that fit THIS budget, and ways to spend under the Saturday grocery room. Return ONLY JSON: {"nudge":"short motivating line","advice":["..."],"offers":[{"title":"","save":"","url":"","why":""}]}. Real URLs only. If search is unavailable, still give advice with offers:[]. Do not edit the budget.`,
+      }], { web: true, edit: false });
+      if (data.ok) {
+        const parsed = parseAdvice(data.text);
+        parsed.at = Date.now();
+        parsed.reason = reason === "login" ? "opened the app" : reason === "change" ? "after a change" : "refresh";
+        state.chat.advice = parsed;
+        save("quiet");
+      } else if (!state.chat.advice) {
+        state.chat.advice = { nudge: data.message || "Could not refresh advice.", advice: [], offers: [], at: Date.now(), reason };
+        save("quiet");
+      }
+      adviceBusy = false;
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "Refresh";
+      }
+      renderInsights();
+    }
+    async function sendChat(text) {
+      const live = liveKeys();
+      if (!live.length) {
+        state.chat.messages.push({ role: "assistant", content: "Add at least one Claude API key in Settings first." });
+        save("quiet");
+        renderChat();
+        return;
+      }
+      state.chat.messages.push({ role: "user", content: text });
+      save("quiet");
+      renderChat();
+      document.getElementById("chatSend").disabled = true;
+      const thread = state.chat.messages
+        .filter((row) => row.role === "user" || row.role === "assistant")
+        .slice(-12)
+        .map((row) => ({ role: row.role, content: row.content }));
+      let reply = "";
+      for (let step = 0; step < 6; step++) {
+        const data = await callClaudeOnce(thread);
+        if (!data.ok) {
+          reply = data.message || "No key worked.";
+          break;
+        }
+        const blocks = Array.isArray(data.content) ? data.content : [];
+        const uses = blocks.filter((part) => part.type === "tool_use");
+        if (uses.length) {
+          thread.push({ role: "assistant", content: blocks });
+          const results = uses.map((part) => {
+            const result = runBudgetTool(part.name, part.input || {});
+            if (result.action) {
+              state.chat.messages.push({ role: "action", content: result.action });
+            }
+            return {
+              type: "tool_result",
+              tool_use_id: part.id,
+              content: JSON.stringify(result),
+              is_error: !result.ok,
+            };
+          });
+          thread.push({ role: "user", content: results });
+          save("quiet");
+          renderChat();
+          continue;
+        }
+        reply = data.text || "";
+        break;
+      }
+      if (!reply) reply = "Updated the budget. Check This month.";
+      state.chat.messages.push({ role: "assistant", content: reply });
+      save("quiet");
+      renderChat();
+      renderApiKeys();
+      document.getElementById("chatSend").disabled = false;
+    }
+    function renderSettingsForms() {
+      const empty = `<p class="empty">Nothing here yet.</p>`;
+      renderApiKeys();
+      document.getElementById("rent").innerHTML = (state.settings.rent || []).map(billFields).join("") || empty;
+      document.getElementById("utilities").innerHTML = (state.settings.utilities || []).map(billFields).join("") || empty;
+      document.getElementById("carInsurance").innerHTML = (state.settings.carInsurance || []).map(billFields).join("") || empty;
+      document.getElementById("creditCards").innerHTML = (state.settings.creditCards || []).map(cardFields).join("") || empty;
+      document.getElementById("studentLoans").innerHTML = (state.settings.studentLoans || []).map((item) => goalDebtFields(item)).join("") || empty;
+      document.getElementById("carFinance").innerHTML = (state.settings.carFinance || []).map((item) => goalDebtFields(item)).join("") || empty;
+      document.getElementById("otherLoans").innerHTML = (state.settings.otherLoans || []).map(debtFields).join("") || empty;
+      document.getElementById("personal").innerHTML = (state.settings.personal || []).map(personalFields).join("") || empty;
+      const groc = document.getElementById("groceriesWeekly");
+      if (groc) groc.value = state.settings.groceriesWeekly ?? "50";
+      const gas = document.getElementById("gasRoom");
+      if (gas) gas.value = state.settings.gasRoom ?? "40";
+      renderBackupStatus();
+    }
+    function renderPayoff() {
+      const debts = allDebts();
+      const personalLeft = (state.settings.personal || []).reduce((sum, d) => sum + num(d.amount), 0);
+      const totalLeft = debts.reduce((sum, d) => sum + num(d.amount), 0) + personalLeft;
+      const plannedDebt = debts.reduce((sum, d) => sum + contributeAmount(d), 0);
+      const housing = [...(state.settings.rent || []), ...(state.settings.utilities || [])]
+        .reduce((sum, b) => sum + num(b.amount), 0);
+      const plannedAll = monthTotals().planned;
+      document.getElementById("debtHero").innerHTML = `
+        <div class="stat"><b>${money(totalLeft)}</b><span>Still owed on loans, cards, and personal</span></div>
+        <div class="stat"><b>${money(housing)}</b><span>Rent and utilities</span></div>
+        <div class="stat"><b>${money(plannedDebt)}</b><span>Debt contributions this month</span></div>
+        <div class="stat"><b>${money(plannedAll)}</b><span>All contributions this month</span></div>
+      `;
+      if (!debts.length) {
+        document.getElementById("payoff").innerHTML = `<p class="empty">Add a card or loan to see a payoff plan.</p>`;
+        return;
+      }
+      const rows = debts.map((d) => {
+        const pay = contributeAmount(d);
+        const plan = payoffMath(num(d.amount), num(d.apr), pay);
+        return `<tr>
+          <td>${escapeHtml(d.name || d.group)}<div class="caption" style="margin:0">${d.group}</div></td>
+          <td class="num">${money(num(d.amount))}</td>
+          <td class="num">${num(d.apr).toFixed(2)}%</td>
+          <td class="num">${money(pay)}</td>
+          <td>${plan.months == null ? "—" : plan.months + " mo"}</td>
+          <td>${plan.date}</td>
+          <td class="num">${plan.interest == null ? "—" : money(plan.interest)}</td>
+        </tr>`;
+      }).join("");
+      document.getElementById("payoff").innerHTML = `
+        <table>
+          <thead><tr>
+            <th>Account</th><th class="num">Left</th><th class="num">APR</th>
+            <th class="num">You send</th><th>Months left</th><th>Payoff</th><th class="num">Interest left</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+    function escapeAttr(s) { return escapeHtml(s); }
+
+    function renderBackupStatus() {
+      const el = document.getElementById("backupStatus");
+      if (!el) return;
+      const at = state.settings.lastBackupAt;
+      el.textContent = at
+        ? "Last download " + new Date(at).toLocaleString() + ". Put that file in Google Drive."
+        : "No backup downloaded yet on this browser.";
+    }
+    function downloadBackup() {
+      const payload = {
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        state,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "budget-backup-" + todayStamp() + ".json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      state.settings.lastBackupAt = Date.now();
+      save("quiet");
+      renderBackupStatus();
+    }
+    function restoreBackup(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const raw = JSON.parse(String(reader.result || ""));
+          const incoming = raw.state || raw;
+          if (!incoming.settings || !incoming.months) {
+            alert("That file is not a budget backup.");
+            return;
+          }
+          state.monthKey = incoming.monthKey || state.monthKey;
+          state.months = incoming.months || {};
+          state.settings = incoming.settings;
+          state.chat = incoming.chat || { messages: [], advice: null };
+          save("quiet");
+          monthOptions();
+          renderPaychecks();
+          renderMonth();
+          renderSettingsForms();
+          renderPayoff();
+          renderChat();
+          renderBackupStatus();
+        } catch {
+          alert("Could not read that backup.");
+        }
+      };
+      reader.readAsText(file);
+    }
+    function blankBill(name, kind) {
+      return { id: uid("bill"), name, amount: "0", dueDay: "1", kind: kind || "variable" };
+    }
+    function blankDebt(name, kind) {
+      return { id: uid("debt"), name, amount: "0", limit: "", apr: "", dueDay: "1", kind: kind || "variable", fixedPay: "", goalAmount: "", goalMonths: "", firstPayDate: "" };
+    }
+    function blankPersonal(name) {
+      return { id: uid("per"), name, amount: "0", dueDay: "1", kind: "variable", fixedPay: "" };
+    }
+
+    document.querySelectorAll(".tab").forEach((el) => {
+      el.addEventListener("click", () => setTab(el.dataset.tab));
+    });
+    document.getElementById("monthKey").addEventListener("change", (e) => {
+      state.monthKey = e.target.value;
+      save();
+      renderPaychecks();
+      renderMonth();
+    });
+    document.getElementById("addPaycheck").addEventListener("click", () => {
+      const { year, month } = parseMonthKey(state.monthKey);
+      const today = new Date();
+      const dayNum = today.getFullYear() === year && today.getMonth() === month ? today.getDate() : 1;
+      const date = monthKeyOf(year, month).replace(/^(\d{4})-(\d{2})$/, (_, y, m) => `${y}-${m}-${String(dayNum).padStart(2, "0")}`);
+      monthState().paychecks.push({ id: uid("pay"), date, amount: "" });
+      save();
+      renderPaychecks();
+      renderMonth();
+    });
+    document.getElementById("paychecks").addEventListener("input", (e) => {
+      const id = e.target.dataset.pay;
+      const k = e.target.dataset.k;
+      if (!id || !k) return;
+      const row = monthState().paychecks.find((p) => p.id === id);
+      if (!row) return;
+      if (row.locked && k === "date") return;
+      row[k] = e.target.value;
+      save();
+      renderNextUp();
+      renderHero();
+      renderPlan();
+    });
+    document.getElementById("paychecks").addEventListener("click", (e) => {
+      const id = e.target.dataset.delPay;
+      if (!id) return;
+      const current = monthState();
+      const target = current.paychecks.find((p) => p.id === id);
+      if (target?.locked) return;
+      current.paychecks = current.paychecks.filter((p) => p.id !== id);
+      save();
+      renderPaychecks();
+      renderMonth();
+    });
+    function findSlice(sliceId) {
+      const sends = monthState().sends || {};
+      for (const accountId of Object.keys(sends)) {
+        const slice = (sends[accountId] || []).find((row) => row.id === sliceId);
+        if (slice) return { accountId, slice };
+      }
+      return null;
+    }
+    document.getElementById("addGasFill").addEventListener("click", () => {
+      monthState().gasFills.push({
+        id: uid("gas"),
+        date: defaultDateInMonth(),
+        amount: "",
+        sent: false,
+      });
+      save();
+      renderMonth();
+    });
+    document.getElementById("addSend").addEventListener("click", () => {
+      const accountId = document.getElementById("addSendAccount").value;
+      if (!accountId) return;
+      ensureSends(accountId).push({
+        id: uid("send"),
+        date: defaultDateInMonth(),
+        amount: "",
+        sent: false,
+      });
+      save();
+      renderMonth();
+    });
+    document.getElementById("view-month").addEventListener("input", (e) => {
+      if (e.target.dataset.grocAmt) {
+        monthState().grocerySpend[e.target.dataset.grocAmt] = e.target.value;
+        save();
+        renderHero();
+        renderPlan();
+        renderInsights();
+        return;
+      }
+      if (e.target.dataset.gas && e.target.dataset.gk) {
+        const fill = monthState().gasFills.find((g) => g.id === e.target.dataset.gas);
+        if (!fill) return;
+        fill[e.target.dataset.gk] = e.target.value;
+        save();
+        renderHero();
+        renderPlan();
+        renderInsights();
+        return;
+      }
+      const sliceId = e.target.dataset.slice;
+      const field = e.target.dataset.sk;
+      if (!sliceId || !field) return;
+      const found = findSlice(sliceId);
+      if (!found) return;
+      found.slice[field] = e.target.value;
+      if (found.slice.sent) applyBalance(found.accountId);
+      save();
+      renderHero();
+    });
+    document.getElementById("view-month").addEventListener("change", (e) => {
+      if (e.target.dataset.grocPaid) {
+        monthState().groceryPaid[e.target.dataset.grocPaid] = e.target.checked;
+        save();
+        renderHero();
+        return;
+      }
+      if (e.target.dataset.gasSent) {
+        const fill = monthState().gasFills.find((g) => g.id === e.target.dataset.gasSent);
+        if (fill) fill.sent = e.target.checked;
+        save();
+        renderHero();
+        return;
+      }
+      if (e.target.dataset.paid) {
+        const id = e.target.dataset.paid;
+        monthState().paid[id] = e.target.checked;
+        applyBalance(id);
+        save();
+        renderHero();
+        return;
+      }
+      if (e.target.dataset.sliceSent) {
+        const found = findSlice(e.target.dataset.sliceSent);
+        if (!found) return;
+        found.slice.sent = e.target.checked;
+        applyBalance(found.accountId);
+        save();
+        renderHero();
+      }
+    });
+    document.getElementById("view-month").addEventListener("click", (e) => {
+      if (e.target.dataset.delGas) {
+        const current = monthState();
+        current.gasFills = current.gasFills.filter((g) => g.id !== e.target.dataset.delGas);
+        save();
+        renderMonth();
+        return;
+      }
+      const sliceId = e.target.dataset.delSlice;
+      if (!sliceId) return;
+      const found = findSlice(sliceId);
+      if (!found) return;
+      const list = monthState().sends[found.accountId];
+      monthState().sends[found.accountId] = list.filter((row) => row.id !== sliceId);
+      applyBalance(found.accountId);
+      save();
+      renderMonth();
+    });
+
+    document.getElementById("view-settings").addEventListener("click", (e) => {
+      const add = e.target.dataset.add;
+      const del = e.target.dataset.del;
+      const setKind = e.target.dataset.setKind;
+      if (setKind) {
+        const found = findItem(setKind);
+        if (!found) return;
+        found.item.kind = e.target.dataset.kindValue === "fixed" ? "fixed" : "variable";
+        save();
+        renderSettingsForms();
+        renderPayoff();
+        return;
+      }
+      if (add) {
+        const blanks = {
+          rent: blankBill("Rent", "fixed"),
+          utilities: blankBill("Utility", "variable"),
+          creditCards: blankDebt("Credit card", "variable"),
+          studentLoans: blankDebt("Student loan", "variable"),
+          carFinance: blankDebt("Car finance", "fixed"),
+          carInsurance: blankBill("Car insurance", "fixed"),
+          otherLoans: blankDebt("Loan", "variable"),
+          personal: blankPersonal("Personal"),
+        };
+        state.settings[add] = [...(state.settings[add] || []), blanks[add]];
+        save();
+        renderSettingsForms();
+        renderPayoff();
+      }
+      if (del) {
+        const found = findItem(del);
+        if (!found) return;
+        state.settings[found.key] = state.settings[found.key].filter((row) => row.id !== del);
+        save();
+        renderSettingsForms();
+        renderPayoff();
+      }
+    });
+    document.getElementById("groceriesWeekly").addEventListener("input", (e) => {
+      state.settings.groceriesWeekly = e.target.value;
+      save();
+      renderMonth();
+    });
+    document.getElementById("gasRoom").addEventListener("input", (e) => {
+      state.settings.gasRoom = e.target.value;
+      save();
+      renderMonth();
+    });
+    document.getElementById("backupDownload").addEventListener("click", downloadBackup);
+    document.getElementById("backupRestore").addEventListener("click", () => document.getElementById("backupFile").click());
+    document.getElementById("backupFile").addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = "";
+      restoreBackup(file);
+    });
+    document.getElementById("view-settings").addEventListener("input", (e) => {
+      const id = e.target.dataset.item;
+      const k = e.target.dataset.k;
+      if (!id || !k) return;
+      const found = findItem(id);
+      if (!found) return;
+      found.item[k] = e.target.value;
+      const plan = document.querySelector(`[data-plan="${id}"]`);
+      if (plan) plan.textContent = planText(found.item);
+      const utilEl = document.querySelector(`[data-util="${id}"]`);
+      if (utilEl) {
+        const util = cardUtil(found.item);
+        utilEl.textContent = util.text;
+        utilEl.className = "util " + util.cls;
+      }
+      save();
+      renderPayoff();
+    });
+    document.getElementById("addApiKey").addEventListener("click", () => {
+      const n = claudeState().keys.length + 1;
+      claudeState().keys.push({ id: uid("api"), label: "Key " + n, key: "", status: "active" });
+      save();
+      renderApiKeys();
+    });
+    document.getElementById("view-settings").addEventListener("input", (e) => {
+      if (e.target.id === "claudeModel") {
+        claudeState().model = e.target.value;
+        const chatModel = document.getElementById("chatModel");
+        if (chatModel) chatModel.value = e.target.value;
+        save();
+        return;
+      }
+      const id = e.target.dataset.api;
+      const k = e.target.dataset.ak;
+      if (!id || !k) return;
+      const row = claudeState().keys.find((item) => item.id === id);
+      if (!row) return;
+      row[k] = e.target.value;
+      if (k === "key" && row.status === "invalid") row.status = "active";
+      save();
+    }, true);
+    document.getElementById("view-settings").addEventListener("click", (e) => {
+      const del = e.target.dataset.apiDel;
+      const revive = e.target.dataset.apiRevive;
+      if (del) {
+        claudeState().keys = claudeState().keys.filter((row) => row.id !== del);
+        save();
+        renderApiKeys();
+      }
+      if (revive) {
+        const row = claudeState().keys.find((item) => item.id === revive);
+        if (row) {
+          row.status = "active";
+          save();
+          renderApiKeys();
+        }
+      }
+    });
+    document.getElementById("chatModel").addEventListener("change", (e) => {
+      claudeState().model = e.target.value;
+      const settingsModel = document.getElementById("claudeModel");
+      if (settingsModel) settingsModel.value = e.target.value;
+      save("quiet");
+    });
+    document.getElementById("adviceRefresh").addEventListener("click", () => refreshAdvice("refresh"));
+    document.getElementById("chatForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const input = document.getElementById("chatInput");
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = "";
+      sendChat(text);
+    });
+    function setChatOpen(open) {
+      document.getElementById("chatDock").classList.toggle("open", open);
+      document.getElementById("chatToggle").textContent = open ? "Close" : "Coach";
+      if (open) {
+        renderChat();
+        document.getElementById("chatInput").focus();
+      }
+    }
+    document.getElementById("chatToggle").addEventListener("click", () => {
+      setChatOpen(!document.getElementById("chatDock").classList.contains("open"));
+    });
+
+    monthOptions();
+    const grocInit = document.getElementById("groceriesWeekly");
+    if (grocInit) grocInit.value = state.settings.groceriesWeekly ?? "50";
+    const gasInit = document.getElementById("gasRoom");
+    if (gasInit) gasInit.value = state.settings.gasRoom ?? "40";
+    renderPaychecks();
+    renderMonth();
+    renderChat();
+    if (liveKeys().length) refreshAdvice("login");
+  </script>
+</body>
+</html>

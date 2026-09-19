@@ -1,0 +1,8 @@
+name = "personal-budget"
+compatibility_date = "2026-09-19"
+pages_build_output_dir = "./dist"
+
+# Local: npm start
+# Cloudflare preview: npm run cf:dev
+# Cloudflare deploy: npm run cf:deploy
+# Then wrangler login if this machine is not signed in yet.

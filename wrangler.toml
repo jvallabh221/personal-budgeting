@@ -1,8 +1,11 @@
-name = "personal-budget"
+name = "personal-budgeting"
+main = "worker.js"
 compatibility_date = "2026-09-19"
-pages_build_output_dir = "./dist"
 
-# Local: npm start
-# Cloudflare preview: npm run cf:dev
-# Cloudflare deploy: npm run cf:deploy
-# Then wrangler login if this machine is not signed in yet.
+[build]
+command = "node scripts/build-cf.mjs"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"

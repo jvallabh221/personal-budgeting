@@ -35,4 +35,4 @@ node_modules
 `
 );
 
-console.log("Cloudflare Pages output ready in dist/");
+console.log("Cloudflare assets ready in dist/");

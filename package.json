@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node server.mjs",
     "build:cf": "node scripts/build-cf.mjs",
-    "cf:dev": "node scripts/build-cf.mjs && npx --yes wrangler pages dev",
-    "cf:deploy": "node scripts/build-cf.mjs && npx --yes wrangler pages deploy"
+    "cf:dev": "npx --yes wrangler dev",
+    "cf:deploy": "npx --yes wrangler deploy"
   }
 }

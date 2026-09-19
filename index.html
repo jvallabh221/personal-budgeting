@@ -4,7 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta http-equiv="Cache-Control" content="no-store" />
+  <meta name="theme-color" content="#ffffff" />
   <title>Personal budget</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f8f5b'/%3E%3Ctext x='16' y='23' font-family='Segoe UI,sans-serif' font-size='19' font-weight='700' fill='%23fff' text-anchor='middle'%3E%24%3C/text%3E%3C/svg%3E" />
   <style>
     :root {
       --bg: #ffffff;
@@ -38,7 +40,7 @@
       --purple-soft: #f1e9ff;
     }
     * { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; }
+    html { -webkit-text-size-adjust: 100%; scroll-padding-top: 76px; }
     html, body { margin: 0; max-width: 100%; overflow-x: clip; }
     body {
       font-family: "Segoe UI", system-ui, sans-serif;
@@ -49,10 +51,9 @@
     }
     main, section, .card, .sheet, .row, .item-card, .debt-block, .stats, .toolbar { min-width: 0; }
     header {
-      padding: calc(20px + env(safe-area-inset-top)) 28px 0;
+      padding: calc(18px + env(safe-area-inset-top)) 28px 14px;
       background: #fff;
       color: var(--ink);
-      border-bottom: 1px solid var(--line);
     }
     header h1 {
       margin: 0 0 6px;
@@ -63,8 +64,19 @@
       background-clip: text;
       color: transparent;
     }
-    header p { margin: 0 0 16px; color: #3f6b82; max-width: 70ch; }
-    .header-nav { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding-bottom: 12px; }
+    header p { margin: 0; color: #3f6b82; max-width: 70ch; }
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 28px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
     .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .tab {
       appearance: none;
@@ -91,7 +103,7 @@
     }
     main { padding: 22px 28px 72px; display: grid; gap: 28px; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(148px, 100%), 1fr)); gap: 12px; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
     .stat {
       background: var(--soft);
       border: 1px solid var(--line);
@@ -130,16 +142,17 @@
     .meter.bad i { background: var(--bad); }
     .pie-card {
       display: grid;
-      grid-template-columns: auto 1fr;
+      grid-template-columns: auto minmax(0, 420px);
       gap: 18px 28px;
       align-items: center;
+      justify-content: start;
       background: var(--green-soft);
       border: 1px solid #b7e4cd;
       border-radius: 16px;
-      padding: 16px 20px;
+      padding: 18px 20px;
     }
-    .pie-wrap { position: relative; width: 168px; height: 168px; }
-    .pie-svg { width: 168px; height: 168px; transform: rotate(-90deg); display: block; }
+    .pie-wrap { position: relative; width: 156px; height: 156px; }
+    .pie-svg { width: 156px; height: 156px; transform: rotate(-90deg); display: block; }
     .pie-hole {
       position: absolute;
       inset: 0;
@@ -150,19 +163,21 @@
       pointer-events: none;
       text-align: center;
     }
-    .pie-hole b { font-size: 18px; letter-spacing: -0.03em; line-height: 1.1; }
+    .pie-hole b { font-size: 19px; letter-spacing: -0.03em; line-height: 1.1; }
     .pie-hole span { color: var(--muted); font-size: 12px; }
-    .pie-copy h3 { margin: 0 0 4px; color: var(--green); }
-    .pie-legend { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+    .pie-copy h3 { margin: 0; color: var(--green); }
+    .pie-legend { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 7px; }
     .pie-legend li {
       display: grid;
-      grid-template-columns: 10px 1fr auto;
+      grid-template-columns: 9px minmax(0, 1fr) auto;
       gap: 10px;
-      align-items: center;
+      align-items: baseline;
       font-size: 14px;
     }
-    .pie-legend i { width: 10px; height: 10px; border-radius: 99px; display: block; }
-    .pie-legend em { color: var(--green); font-style: normal; font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
+    .pie-legend i { width: 9px; height: 9px; border-radius: 99px; display: block; transform: translateY(-1px); }
+    .pie-legend span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pie-legend small { color: var(--muted); font-size: 12px; margin-left: 6px; }
+    .pie-legend em { font-style: normal; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; }
     .month-bar { display: flex; align-items: baseline; gap: 12px; }
     .month-bar h2 { margin: 0; color: var(--blue); }
     .month-bar select { width: auto; }
@@ -220,15 +235,18 @@
       border-radius: 14px;
       padding: 12px;
     }
-    .pay-table { border: 0; background: transparent; table-layout: fixed; }
+    .pay-table { border: 0; background: transparent; }
     .pay-table th, .pay-table td { border: 0; border-top: 1px solid var(--line); padding: 10px 8px; vertical-align: middle; }
     .pay-table thead th { border-top: 0; }
-    .pay-table th:nth-child(1), .pay-table td:nth-child(1) { width: 22%; }
-    .pay-table th:nth-child(2), .pay-table td:nth-child(2) { width: 30%; }
-    .pay-table th:nth-child(3), .pay-table td:nth-child(3) { width: 20%; }
-    .pay-table th:nth-child(4), .pay-table td:nth-child(4) { width: 14%; white-space: nowrap; }
-    .pay-table input[type="number"] { width: 120px; max-width: 100%; }
     .pay-table tr.need input { border-color: var(--warn); }
+    @media (min-width: 721px) {
+      .pay-table { table-layout: fixed; }
+      .pay-table th:nth-child(1), .pay-table td:nth-child(1) { width: 22%; }
+      .pay-table th:nth-child(2), .pay-table td:nth-child(2) { width: 30%; }
+      .pay-table th:nth-child(3), .pay-table td:nth-child(3) { width: 20%; }
+      .pay-table th:nth-child(4), .pay-table td:nth-child(4) { width: 14%; white-space: nowrap; }
+      .pay-table input[type="number"] { width: 120px; max-width: 100%; }
+    }
     .good { color: var(--accent); }
     .bad { color: var(--bad); }
     .warn { color: var(--warn); }
@@ -375,7 +393,7 @@
       min-height: 44px;
       font-weight: 650;
     }
-    .sent-check input { width: 22px; height: 22px; min-height: 22px; }
+    .sent-check input { width: 22px; height: 22px; min-height: 22px; flex: none; }
     .section { margin-bottom: 22px; }
     #view-settings .section { margin-bottom: 0; }
     .hidden { display: none !important; }
@@ -401,13 +419,38 @@
       width: 100%;
       max-height: min(80vh, 760px);
       display: none;
-      grid-template-rows: auto auto minmax(0, auto) minmax(80px, 1fr) auto;
+      grid-template-rows: auto auto minmax(0, auto) minmax(60px, 1fr) auto;
+      gap: 8px;
+      overflow: hidden;
       background: #fff;
       border: 1px solid var(--line);
       border-radius: 20px;
       box-shadow: 0 16px 40px rgba(17, 24, 39, 0.12);
-      padding: 12px 12px 10px;
+      padding: 12px;
     }
+    .chat-panel > * { min-width: 0; }
+    .chat-head {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .chat-head h2 { margin: 0; font-size: 16px; color: var(--purple); }
+    .chat-head select {
+      min-width: 0;
+      font-size: 14px;
+      padding: 8px;
+      border-radius: 10px;
+    }
+    .chat-head button {
+      min-height: 40px;
+      padding: 8px 12px;
+      font-size: 14px;
+      color: var(--purple);
+      border-color: #d8c8f8;
+      white-space: nowrap;
+    }
+    #chatKeyStatus { margin: 0; }
     .chat-insights {
       background: var(--purple-soft);
       border: 1px solid #d8c8f8;
@@ -427,9 +470,9 @@
       display: grid;
       align-content: start;
       gap: 10px;
-      min-height: 140px;
+      min-height: 0;
       overflow-y: auto;
-      padding: 4px 2px 8px;
+      padding: 4px 2px;
     }
     .bubble {
       background: var(--soft);
@@ -461,8 +504,9 @@
     .stack-table td::before { display: none; }
     @media (max-width: 960px) {
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .pie-card { grid-template-columns: 1fr; justify-items: center; text-align: center; }
-      .pie-legend { width: 100%; max-width: 360px; text-align: left; }
+      .pie-card { grid-template-columns: 1fr; justify-items: center; justify-content: stretch; text-align: center; }
+      .pie-copy { width: 100%; max-width: 380px; }
+      .pie-legend { text-align: left; }
       .grid-2, .next-grid, .summary { grid-template-columns: 1fr; }
       .hero-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .row, .pay-row, .bill-row, .bill-row.variable, .debt-row, .card-row, .goal-row, .start-row, .line, .key-row {
@@ -472,18 +516,15 @@
       .card-row > :first-child,
       .debt-row > :first-child,
       .key-row > :first-child { grid-column: 1 / -1; }
-      header, main { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right)); }
+      header, main, .navbar { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right)); }
       header { padding-top: max(14px, env(safe-area-inset-top)); }
       header h1 { font-size: 22px; }
       header p { font-size: 13px; }
-      .header-nav { grid-template-columns: 1fr auto; }
       .big { font-size: 26px; }
       .month-bar { flex-wrap: wrap; }
       .month-bar select { width: 100%; }
       .toolbar { flex-wrap: wrap; }
       .toolbar h2, .toolbar h3 { flex: 1 1 auto; }
-      .chat-panel .sheet-head, .chat-panel .toolbar { flex-direction: row; align-items: center; }
-      .chat-panel .toolbar select, .chat-panel .toolbar button { width: auto; }
       .mode { width: 100%; }
       .mode button { flex: 1; min-height: 44px; }
       .narrow-field { max-width: none; }
@@ -507,7 +548,7 @@
       }
       #chatToggle { width: auto; justify-self: end; }
       .chat-panel { max-height: min(78dvh, 720px); }
-      .chat-insights { max-height: 22dvh; }
+      .chat-insights { max-height: 30dvh; }
       .bubble.me { margin-left: 8%; }
       .pay-table thead, .stack-table thead { display: none; }
       .pay-table, .pay-table tbody, .pay-table tr, .pay-table td,
@@ -533,8 +574,11 @@
     }
     @media (max-width: 400px) {
       header p { display: none; }
-      .header-nav { grid-template-columns: 1fr; }
-      #chatToggle { width: 100%; }
+      header h1 { font-size: 20px; }
+      .tab { padding: 10px 8px; font-size: 14px; }
+      #chatToggle { padding: 10px 12px; }
+      .chat-head { grid-template-columns: minmax(0, 1fr) auto; }
+      .chat-head h2 { grid-column: 1 / -1; }
     }
   </style>
 </head>
@@ -542,14 +586,14 @@
   <header>
     <h1>Make this month yours</h1>
     <p>Every check has a job. Spend less on groceries than the room you left. Push cards toward 30%. You are closer than it feels.</p>
-    <div class="header-nav">
-      <div class="tabs">
-        <button type="button" class="tab on" data-tab="month">This month</button>
-        <button type="button" class="tab" data-tab="settings">Settings</button>
-      </div>
-      <button type="button" id="chatToggle">Coach</button>
-    </div>
   </header>
+  <nav class="navbar">
+    <div class="tabs">
+      <button type="button" class="tab on" data-tab="month">This month</button>
+      <button type="button" class="tab" data-tab="settings">Settings</button>
+    </div>
+    <button type="button" id="chatToggle">Coach</button>
+  </nav>
 
   <main>
     <section id="view-month">
@@ -725,12 +769,10 @@
 
   <div id="chatDock" class="chat-dock">
     <div class="chat-panel" id="chatPanel">
-      <div class="sheet-head tone-coach">
+      <div class="chat-head">
         <h2>Coach</h2>
-        <div class="toolbar">
-          <select id="chatModel"></select>
-          <button type="button" class="ghost" id="adviceRefresh">Refresh</button>
-        </div>
+        <select id="chatModel" aria-label="Claude model"></select>
+        <button type="button" class="ghost" id="adviceRefresh">Refresh</button>
       </div>
       <p class="caption" id="chatKeyStatus">Claude runs only when you open the app, change something, or tap Refresh — not in the background.</p>
       <div id="chatInsights" class="chat-insights"></div>
@@ -1506,19 +1548,21 @@
         return;
       }
       const C = 2 * Math.PI * 36;
+      const gap = slices.length > 1 ? 1.2 : 0;
       let offset = 0;
       const rings = slices.map((s) => {
         const len = (s.amount / total) * C;
-        const circle = `<circle r="36" cx="50" cy="50" fill="none" stroke="${s.color}" stroke-width="18" stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}" />`;
+        const drawn = Math.max(len - gap, 0.6);
+        const circle = `<circle r="36" cx="50" cy="50" fill="none" stroke="${s.color}" stroke-width="15" stroke-dasharray="${drawn.toFixed(2)} ${(C - drawn).toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}" />`;
         offset += len;
         return circle;
       }).join("");
       const holeAmt = leftover < 0 ? money(-leftover) : money(Math.max(0, leftover));
       const holeCls = leftover < 0 ? "bad" : "good";
-      const holeLabel = leftover < 0 ? "short" : "left";
+      const holeLabel = leftover < 0 ? "short" : "left to spend";
       const legend = slices.map((s) => {
         const pct = Math.round((s.amount / total) * 100);
-        return `<li><i style="background:${s.color}"></i><span>${escapeHtml(s.label)} · ${pct}%</span><em>${money(s.amount)}</em></li>`;
+        return `<li><i style="background:${s.color}"></i><span>${escapeHtml(s.label)}<small>${pct}%</small></span><em style="color:${s.color}">${money(s.amount)}</em></li>`;
       }).join("");
       el.innerHTML = `
         <div class="pie-wrap">
@@ -1527,7 +1571,6 @@
         </div>
         <div class="pie-copy">
           <h3>Where this month goes</h3>
-          <p class="caption">Take-home split by what is already planned. Leftover is the green slice.</p>
           <ul class="pie-legend">${legend}</ul>
         </div>
       `;
@@ -2334,6 +2377,7 @@
       renderInsights();
     }
     async function sendChat(text) {
+      state.chat.messages.push({ role: "user", content: text });
       const live = liveKeys();
       if (!live.length) {
         state.chat.messages.push({ role: "assistant", content: "Add at least one Claude API key in Settings first." });
@@ -2341,7 +2385,6 @@
         renderChat();
         return;
       }
-      state.chat.messages.push({ role: "user", content: text });
       save("quiet");
       renderChat();
       document.getElementById("chatSend").disabled = true;

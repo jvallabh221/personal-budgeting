@@ -63,7 +63,7 @@
     }
     main { padding: 22px 28px 72px; display: grid; gap: 28px; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
     .stat {
       background: var(--soft);
       border: 1px solid var(--line);
@@ -72,6 +72,45 @@
     }
     .stat b { display: block; font-size: 22px; letter-spacing: -0.03em; }
     .stat span { color: var(--muted); font-size: 13px; }
+    .meter { height: 6px; background: #e6e8ee; border-radius: 99px; margin-top: 10px; overflow: hidden; }
+    .meter i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+    .meter.warn i { background: var(--warn); }
+    .meter.bad i { background: var(--bad); }
+    .pie-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 18px 28px;
+      align-items: center;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px 20px;
+    }
+    .pie-wrap { position: relative; width: 168px; height: 168px; }
+    .pie-svg { width: 168px; height: 168px; transform: rotate(-90deg); display: block; }
+    .pie-hole {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      text-align: center;
+    }
+    .pie-hole b { font-size: 18px; letter-spacing: -0.03em; line-height: 1.1; }
+    .pie-hole span { color: var(--muted); font-size: 12px; }
+    .pie-copy h3 { margin: 0 0 4px; }
+    .pie-legend { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+    .pie-legend li {
+      display: grid;
+      grid-template-columns: 10px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      font-size: 14px;
+    }
+    .pie-legend i { width: 10px; height: 10px; border-radius: 99px; display: block; }
+    .pie-legend em { color: var(--muted); font-style: normal; font-size: 13px; font-variant-numeric: tabular-nums; }
     .month-bar { display: flex; align-items: baseline; gap: 12px; }
     .month-bar h2 { margin: 0; }
     .month-bar select { width: auto; }
@@ -261,7 +300,9 @@
     .key-row { grid-template-columns: 1fr 1.4fr 110px auto auto; }
     .api-status { font-size: 12px; }
     @media (max-width: 960px) {
-      .stats { grid-template-columns: 1fr 1fr; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .pie-card { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+      .pie-legend { width: 100%; text-align: left; }
       .grid-2, .next-grid, .bill-row, .bill-row.variable, .debt-row, .card-row, .goal-row, .start-row, .pay-row, .line, .key-row { grid-template-columns: 1fr; }
       header, main { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
       header { padding-top: max(16px, env(safe-area-inset-top)); }
@@ -273,7 +314,7 @@
       .mode button { flex: 1; }
     }
     @media (max-width: 720px) {
-      .stats { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr 1fr; }
       .chat-compose { grid-template-columns: 1fr; }
       .chat-dock {
         right: 12px;
@@ -317,6 +358,8 @@
       </div>
       <div id="nextUp" class="next-grid"></div>
       <div id="hero" class="summary"></div>
+      <div id="metrics" class="stats"></div>
+      <div id="pieChart" class="pie-card"></div>
       <div class="sheet">
         <h2>Credit cards to 30%</h2>
         <p class="caption">This is the extra you send so used credit drops to 30% of the limit. It is not the minimum due.</p>
@@ -1136,8 +1179,149 @@
         <div class="meta">Send ${money(planned)}</div>
         <div class="meta ${pending > 0 ? "warn" : ""}">Pending ${money(pending)}</div>
       `;
+      renderMetrics();
+      renderPie();
       renderCardTarget();
       if (typeof renderInsights === "function") renderInsights();
+    }
+    function daysBetween(from, to) {
+      const a = new Date(from + "T00:00:00").getTime();
+      const b = new Date(to + "T00:00:00").getTime();
+      return Math.round((b - a) / 86400000);
+    }
+    function renderMetrics() {
+      const el = document.getElementById("metrics");
+      if (!el) return;
+      const { received, planned, pending, spend, flow } = monthTotals();
+      const sent = flow.filter((row) => row.sent).reduce((sum, row) => sum + num(row.amount), 0);
+      const keepPct = received > 0 ? Math.max(0, Math.round((spend / received) * 100)) : null;
+      const spokenPct = received > 0 ? Math.round((planned / received) * 100) : null;
+      const paidPct = planned > 0 ? Math.round((sent / planned) * 100) : 0;
+      const cards = state.settings.creditCards || [];
+      const used = cards.reduce((sum, card) => sum + num(card.amount), 0);
+      const limit = cards.reduce((sum, card) => sum + num(card.limit), 0);
+      const utilPct = limit > 0 ? Math.round((used / limit) * 100) : null;
+      const groc = groceryWeeks();
+      const grocRoom = groc.reduce((sum, g) => sum + num(g.room), 0);
+      const grocUsed = groc.reduce((sum, g) => sum + num(g.amount), 0);
+      const grocPct = grocRoom > 0 ? Math.round((grocUsed / grocRoom) * 100) : null;
+      const gasUsed = (monthState().gasFills || []).reduce((sum, g) => sum + num(g.amount), 0);
+      const debt = allDebts().reduce((sum, d) => sum + num(d.amount), 0);
+      const today = todayStamp();
+      const nextCheck = (monthState().paychecks || [])
+        .filter((p) => p.date && p.date >= today)
+        .sort((a, b) => String(a.date).localeCompare(String(b.date)))[0];
+      const wait = nextCheck ? Math.max(0, daysBetween(today, nextCheck.date)) : null;
+      const bar = (pct, tone) => {
+        const width = Math.min(100, Math.max(0, pct == null ? 0 : pct));
+        const cls = tone || (pct == null ? "" : pct >= 90 ? "bad" : pct >= 70 ? "warn" : "");
+        return `<div class="meter ${cls}"><i style="width:${width}%"></i></div>`;
+      };
+      el.innerHTML = `
+        <div class="stat">
+          <b class="${spend < 0 ? "bad" : "good"}">${keepPct == null ? "—" : keepPct + "%"}</b>
+          <span>Left after planned bills</span>
+          ${bar(keepPct == null ? 0 : Math.max(0, keepPct), spend < 0 ? "bad" : "")}
+        </div>
+        <div class="stat">
+          <b>${spokenPct == null ? "—" : spokenPct + "%"}</b>
+          <span>Paychecks already spoken for</span>
+          ${bar(spokenPct, spokenPct != null && spokenPct > 100 ? "bad" : spokenPct >= 85 ? "warn" : "")}
+        </div>
+        <div class="stat">
+          <b class="${utilPct == null ? "" : utilPct >= 70 ? "bad" : utilPct >= 30 ? "warn" : "good"}">${utilPct == null ? "—" : utilPct + "%"}</b>
+          <span>Cards used${limit ? " of " + money(limit) : " — add a limit"}</span>
+          ${bar(utilPct, utilPct == null ? "" : utilPct >= 70 ? "bad" : utilPct >= 30 ? "warn" : "")}
+        </div>
+        <div class="stat">
+          <b>${grocPct == null ? "—" : grocPct + "%"}</b>
+          <span>Grocery room used · ${money(grocUsed)}</span>
+          ${bar(grocPct, grocPct != null && grocPct > 100 ? "bad" : "")}
+        </div>
+        <div class="stat">
+          <b>${money(gasUsed)}</b>
+          <span>Gas this month · room ${money(num(state.settings.gasRoom))} / fill</span>
+          ${bar(num(state.settings.gasRoom) ? Math.round((gasUsed / Math.max(num(state.settings.gasRoom), 0.01)) * 100) : 0)}
+        </div>
+        <div class="stat">
+          <b>${paidPct}%</b>
+          <span>Out marked Sent · ${money(pending)} still open</span>
+          ${bar(paidPct)}
+        </div>
+        <div class="stat">
+          <b>${wait == null ? "—" : wait}</b>
+          <span>${wait == null ? "No upcoming paycheck" : wait === 0 ? "Paycheck today" : "Days to next paycheck"}</span>
+        </div>
+        <div class="stat">
+          <b>${money(debt)}</b>
+          <span>Still on loans and cards</span>
+        </div>
+      `;
+    }
+    function pieSlices() {
+      const { received, planned, flow } = monthTotals();
+      const byId = Object.fromEntries(allAccounts().map((a) => [a.id, a]));
+      const buckets = [
+        { id: "groceries", label: "Groceries", color: "#65a30d", amount: 0 },
+        { id: "gas", label: "Gas", color: "#d97706", amount: 0 },
+        { id: "housing", label: "Rent & utilities", color: "#1d4ed8", amount: 0 },
+        { id: "car", label: "Car", color: "#0e7490", amount: 0 },
+        { id: "debt", label: "Cards & loans", color: "#b45309", amount: 0 },
+        { id: "personal", label: "Personal", color: "#6b7280", amount: 0 },
+        { id: "leftover", label: "Left to spend", color: "#0f8f5b", amount: 0 },
+      ];
+      const find = (id) => buckets.find((b) => b.id === id);
+      for (const row of flow) {
+        const amt = num(row.amount);
+        if (amt <= 0) continue;
+        if (row.kind === "grocery") find("groceries").amount += amt;
+        else if (row.kind === "gas") find("gas").amount += amt;
+        else {
+          const key = byId[row.accountId]?.key;
+          if (key === "rent" || key === "utilities") find("housing").amount += amt;
+          else if (key === "carFinance" || key === "carInsurance") find("car").amount += amt;
+          else if (key === "personal") find("personal").amount += amt;
+          else find("debt").amount += amt;
+        }
+      }
+      find("leftover").amount = Math.max(0, received - planned);
+      return { slices: buckets.filter((s) => s.amount > 0), received, planned, leftover: received - planned };
+    }
+    function renderPie() {
+      const el = document.getElementById("pieChart");
+      if (!el) return;
+      const { slices, leftover } = pieSlices();
+      const total = slices.reduce((sum, s) => sum + s.amount, 0);
+      if (!total) {
+        el.innerHTML = `<div class="pie-copy"><h3>Where this month goes</h3><p class="caption">Enter a paycheck or a send amount and the pie fills in.</p></div>`;
+        return;
+      }
+      const C = 2 * Math.PI * 36;
+      let offset = 0;
+      const rings = slices.map((s) => {
+        const len = (s.amount / total) * C;
+        const circle = `<circle r="36" cx="50" cy="50" fill="none" stroke="${s.color}" stroke-width="18" stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}" />`;
+        offset += len;
+        return circle;
+      }).join("");
+      const holeAmt = leftover < 0 ? money(-leftover) : money(Math.max(0, leftover));
+      const holeCls = leftover < 0 ? "bad" : "good";
+      const holeLabel = leftover < 0 ? "short" : "left";
+      const legend = slices.map((s) => {
+        const pct = Math.round((s.amount / total) * 100);
+        return `<li><i style="background:${s.color}"></i><span>${escapeHtml(s.label)} · ${pct}%</span><em>${money(s.amount)}</em></li>`;
+      }).join("");
+      el.innerHTML = `
+        <div class="pie-wrap">
+          <svg class="pie-svg" viewBox="0 0 100 100" aria-hidden="true">${rings}</svg>
+          <div class="pie-hole"><b class="${holeCls}">${holeAmt}</b><span>${holeLabel}</span></div>
+        </div>
+        <div class="pie-copy">
+          <h3>Where this month goes</h3>
+          <p class="caption">Take-home split by what is already planned. Leftover is the green slice.</p>
+          <ul class="pie-legend">${legend}</ul>
+        </div>
+      `;
     }
     function cardThirtyNeed(item) {
       const limit = num(item.limit);

@@ -39,7 +39,7 @@
     }
     * { box-sizing: border-box; }
     html { -webkit-text-size-adjust: 100%; }
-    html, body { margin: 0; }
+    html, body { margin: 0; max-width: 100%; overflow-x: clip; }
     body {
       font-family: "Segoe UI", system-ui, sans-serif;
       background: var(--bg);
@@ -47,6 +47,7 @@
       line-height: 1.45;
       padding-bottom: env(safe-area-inset-bottom);
     }
+    main, section, .card, .sheet, .row, .item-card, .debt-block, .stats, .toolbar { min-width: 0; }
     header {
       padding: calc(20px + env(safe-area-inset-top)) 28px 0;
       background: #fff;
@@ -63,31 +64,34 @@
       color: transparent;
     }
     header p { margin: 0 0 16px; color: #3f6b82; max-width: 70ch; }
-    .tabs { display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .header-nav { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding-bottom: 12px; }
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .tab {
       appearance: none;
-      background: transparent;
-      border: 0;
-      border-bottom: 2px solid transparent;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
       color: var(--muted);
       padding: 12px 16px;
       cursor: pointer;
       font: inherit;
       min-height: 44px;
-      flex-shrink: 0;
+      text-align: center;
     }
     .tab.on {
       color: var(--green);
-      border-bottom-color: var(--green);
+      background: var(--green-soft);
+      border-color: #b7e4cd;
       font-weight: 650;
     }
     .tab[data-tab="settings"].on {
       color: var(--purple);
-      border-bottom-color: var(--purple);
+      background: var(--purple-soft);
+      border-color: #d8c8f8;
     }
     main { padding: 22px 28px 72px; display: grid; gap: 28px; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(148px, 100%), 1fr)); gap: 12px; }
     .stat {
       background: var(--soft);
       border: 1px solid var(--line);
@@ -163,15 +167,19 @@
     .month-bar h2 { margin: 0; color: var(--blue); }
     .month-bar select { width: auto; }
     .summary {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 8px 28px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px 20px;
+      align-items: center;
       padding: 18px 20px;
       background: var(--green-soft);
       border: 1px solid #b7e4cd;
       border-radius: 16px;
     }
+    .hero-facts { display: grid; gap: 8px 16px; grid-template-columns: repeat(3, auto); }
+    .hero-facts .meta { display: grid; gap: 2px; }
+    .hero-facts .meta span { font-size: 12px; font-weight: 650; }
+    .hero-facts .meta b { font-size: 16px; letter-spacing: -0.02em; }
     .big { font-size: 40px; font-weight: 750; letter-spacing: -0.05em; line-height: 1; }
     .meta { color: var(--muted); font-size: 14px; }
     .meta.got { color: var(--green); font-weight: 650; }
@@ -203,10 +211,14 @@
     .pack li { margin: 4px 0; }
     .line {
       display: grid;
-      grid-template-columns: 170px 140px auto;
+      grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
       gap: 8px;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 10px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
     }
     .pay-table { border: 0; background: transparent; table-layout: fixed; }
     .pay-table th, .pay-table td { border: 0; border-top: 1px solid var(--line); padding: 10px 8px; vertical-align: middle; }
@@ -265,13 +277,21 @@
     tr.done td { color: var(--muted); }
     label { display: block; font-size: 12px; color: var(--teal); font-weight: 650; margin-bottom: 4px; }
     input, select, button { font: inherit; color: var(--ink); }
+    input, select, textarea, button, table { max-width: 100%; }
     input, select, textarea {
       width: 100%;
+      min-width: 0;
       border: 1px solid var(--line);
       background: #fff;
       padding: 10px 8px;
       font-size: 16px;
       border-radius: 12px;
+    }
+    input[type="checkbox"], input[type="radio"] {
+      width: auto;
+      max-width: none;
+      min-height: 20px;
+      accent-color: var(--green);
     }
     textarea { min-height: 72px; resize: vertical; }
     button {
@@ -303,12 +323,28 @@
     .tone-backup button.ghost { color: var(--teal); border-color: #b6e0ea; }
     .tone-keys button.ghost { color: var(--purple); border-color: #d8c8f8; }
     .tone-coach button.ghost { color: var(--purple); border-color: #d8c8f8; }
-    .row { display: grid; gap: 8px; align-items: end; margin-bottom: 8px; }
-    .pay-row { grid-template-columns: 1fr 1fr auto; }
-    .bill-row { grid-template-columns: 1.2fr 1fr 80px auto auto; }
-    .bill-row.variable { grid-template-columns: 1.4fr 80px auto auto; }
-    .debt-row { grid-template-columns: 1.1fr 1fr 90px 80px 1fr auto auto; }
-    .card-row { grid-template-columns: 1.2fr 1fr 1fr 90px 90px 80px auto auto; }
+    .row { display: grid; gap: 10px; align-items: end; margin-bottom: 8px; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); }
+    .pay-row, .bill-row, .bill-row.variable, .debt-row, .card-row, .key-row, .goal-row, .start-row {
+      grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+    }
+    .item-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .item-card .row { margin-bottom: 0; }
+    .field-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: end;
+    }
+    .field-actions .mode { flex: 1 1 160px; }
+    .field-actions > button { flex: 1 1 120px; }
+    .narrow-field { max-width: 220px; }
     .util {
       font-size: 22px;
       font-weight: 650;
@@ -316,18 +352,38 @@
       line-height: 1.2;
       padding-top: 6px;
     }
-    .goal-row { grid-template-columns: 1fr 1fr; margin-top: 12px; }
-    .start-row { grid-template-columns: 1fr 1fr; margin-top: 12px; }
-    .debt-block { margin-bottom: 22px; padding: 16px 0 18px; border-bottom: 1px solid var(--line); }
+    .goal-row { margin-top: 12px; }
+    .start-row { margin-top: 12px; }
+    .debt-block {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .debt-block .row { margin-bottom: 10px; }
     .plan { margin: 14px 0 0; color: var(--ink); font-size: 14px; line-height: 1.55; max-width: 72ch; }
     .mode { display: flex; gap: 4px; }
     .mode button { padding: 7px 8px; font-size: 12px; }
-    .sent-check { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--muted); font-size: 13px; }
+    .sent-check {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      min-height: 44px;
+      font-weight: 650;
+    }
+    .sent-check input { width: 22px; height: 22px; min-height: 22px; }
     .section { margin-bottom: 22px; }
-    .hidden { display: none; }
+    #view-settings .section { margin-bottom: 0; }
+    .hidden { display: none !important; }
+    .pay-table td[data-label=""]::before,
+    .stack-table td[data-label=""]::before { display: none; }
     .empty { color: var(--muted); font-size: 14px; }
     .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    main { padding-bottom: 96px; }
+    main { padding-bottom: 40px; }
     .chat-dock {
       position: fixed;
       right: 16px;
@@ -391,54 +447,94 @@
       align-items: end;
     }
     #chatToggle {
-      border-radius: 14px;
-      min-height: 52px;
-      padding: 10px 20px;
+      border-radius: 12px;
+      min-height: 44px;
+      padding: 10px 16px;
       background: linear-gradient(135deg, #0f8f5b, #1d4ed8);
       border-color: transparent;
       color: #fff;
-      box-shadow: 0 10px 24px rgba(29, 78, 216, 0.22);
+      white-space: nowrap;
     }
-    .key-row { grid-template-columns: 1fr 1.4fr 110px auto auto; }
     .api-status { font-size: 12px; }
+    #view-settings { display: grid; gap: 14px; }
+    #view-settings.hidden { display: none; }
+    .stack-table td::before { display: none; }
     @media (max-width: 960px) {
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .pie-card { grid-template-columns: 1fr; justify-items: center; text-align: center; }
-      .pie-legend { width: 100%; text-align: left; }
-      .grid-2, .next-grid, .bill-row, .bill-row.variable, .debt-row, .card-row, .goal-row, .start-row, .pay-row, .line, .key-row { grid-template-columns: 1fr; }
-      header, main { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
-      header { padding-top: max(16px, env(safe-area-inset-top)); }
-      header h1 { font-size: 24px; }
-      .big { font-size: 28px; }
-      .month-bar, .sheet-head, .toolbar { flex-wrap: wrap; }
-      .month-bar select, .sheet-head select, .toolbar select, .toolbar button, .sheet-head button { width: 100%; }
+      .pie-legend { width: 100%; max-width: 360px; text-align: left; }
+      .grid-2, .next-grid, .summary { grid-template-columns: 1fr; }
+      .hero-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .row, .pay-row, .bill-row, .bill-row.variable, .debt-row, .card-row, .goal-row, .start-row, .line, .key-row {
+        grid-template-columns: 1fr 1fr;
+      }
+      .bill-row > :first-child,
+      .card-row > :first-child,
+      .debt-row > :first-child,
+      .key-row > :first-child { grid-column: 1 / -1; }
+      header, main { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right)); }
+      header { padding-top: max(14px, env(safe-area-inset-top)); }
+      header h1 { font-size: 22px; }
+      header p { font-size: 13px; }
+      .header-nav { grid-template-columns: 1fr auto; }
+      .big { font-size: 26px; }
+      .month-bar { flex-wrap: wrap; }
+      .month-bar select { width: 100%; }
+      .toolbar { flex-wrap: wrap; }
+      .toolbar h2, .toolbar h3 { flex: 1 1 auto; }
+      .chat-panel .sheet-head, .chat-panel .toolbar { flex-direction: row; align-items: center; }
+      .chat-panel .toolbar select, .chat-panel .toolbar button { width: auto; }
       .mode { width: 100%; }
-      .mode button { flex: 1; }
+      .mode button { flex: 1; min-height: 44px; }
+      .narrow-field { max-width: none; }
+      .util { padding-top: 10px; }
     }
     @media (max-width: 720px) {
       .stats { grid-template-columns: 1fr 1fr; }
+      .row, .pay-row, .bill-row, .bill-row.variable, .debt-row, .card-row, .goal-row, .start-row, .line, .key-row {
+        grid-template-columns: 1fr;
+      }
+      .sheet-head, .toolbar { flex-direction: column; align-items: stretch; }
+      .sheet-head select, .toolbar select, .toolbar button, .sheet-head button { width: 100%; }
+      .field-actions { flex-direction: column; align-items: stretch; }
+      .field-actions > button, .field-actions .mode { width: 100%; flex: none; }
       .chat-compose { grid-template-columns: 1fr; }
       .chat-dock {
-        right: 12px;
         left: 12px;
+        right: 12px;
         width: auto;
         align-items: stretch;
       }
-      #chatToggle { width: 100%; }
+      #chatToggle { width: auto; justify-self: end; }
       .chat-panel { max-height: min(78dvh, 720px); }
       .chat-insights { max-height: 22dvh; }
       .bubble.me { margin-left: 8%; }
-      .pay-table thead { display: none; }
-      .pay-table, .pay-table tbody, .pay-table tr, .pay-table td { display: block; width: 100%; }
-      .pay-table tr {
+      .pay-table thead, .stack-table thead { display: none; }
+      .pay-table, .pay-table tbody, .pay-table tr, .pay-table td,
+      .stack-table, .stack-table tbody, .stack-table tr, .stack-table td { display: block; width: 100%; }
+      .pay-table tr, .stack-table tr {
         border: 1px solid var(--line);
         border-radius: 14px;
         padding: 10px 12px;
         margin: 0 0 10px;
+        background: #fff;
       }
-      .pay-table td { border: 0; padding: 6px 0; width: 100%; }
+      .pay-table td, .stack-table td { border: 0; padding: 8px 0; width: 100%; text-align: left; }
+      .pay-table td::before, .stack-table td::before {
+        display: block;
+        content: attr(data-label);
+        font-size: 12px;
+        font-weight: 650;
+        color: var(--teal);
+        margin-bottom: 4px;
+      }
+      .pay-table td:empty::before, .stack-table td:empty::before { display: none; }
       .pay-table input[type="number"], .pay-table input[type="date"] { width: 100%; max-width: none; }
-      table { display: block; overflow-x: auto; }
+    }
+    @media (max-width: 400px) {
+      header p { display: none; }
+      .header-nav { grid-template-columns: 1fr; }
+      #chatToggle { width: 100%; }
     }
   </style>
 </head>
@@ -446,9 +542,12 @@
   <header>
     <h1>Make this month yours</h1>
     <p>Every check has a job. Spend less on groceries than the room you left. Push cards toward 30%. You are closer than it feels.</p>
-    <div class="tabs">
-      <button type="button" class="tab on" data-tab="month">This month</button>
-      <button type="button" class="tab" data-tab="settings">Settings</button>
+    <div class="header-nav">
+      <div class="tabs">
+        <button type="button" class="tab on" data-tab="month">This month</button>
+        <button type="button" class="tab" data-tab="settings">Settings</button>
+      </div>
+      <button type="button" id="chatToggle">Coach</button>
     </div>
   </header>
 
@@ -544,7 +643,7 @@
       <div class="section card tone-groc">
         <h3 style="margin:0">Groceries</h3>
         <p class="caption">Saturdays are shopping days, not five locked $50 bills. This number is room you can spend if you need it. Type the real trip on This month — spend as little as you can. Blank Saturdays do not come out of a paycheck.</p>
-        <div class="row" style="grid-template-columns: 200px; max-width: 220px">
+        <div class="row narrow-field">
           <div>
             <label>Room each Saturday</label>
             <input id="groceriesWeekly" type="number" min="0" step="0.01" />
@@ -582,7 +681,7 @@
       <div class="section card tone-gas">
         <h3 style="margin:0">Gas</h3>
         <p class="caption">This is room per fill, not a locked weekly bill. Add a fill on This month when you actually pump. Spend under this if you can.</p>
-        <div class="row" style="grid-template-columns: 200px; max-width: 220px">
+        <div class="row narrow-field">
           <div>
             <label>Room each fill</label>
             <input id="gasRoom" type="number" min="0" step="0.01" />
@@ -641,7 +740,6 @@
         <button type="submit" id="chatSend">Send</button>
       </form>
     </div>
-    <button type="button" id="chatToggle">Coach</button>
   </div>
 
   <script>
@@ -760,8 +858,15 @@
       return prefix + "-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
     }
     function money(n) {
-      const formatted = Math.abs(n).toLocaleString("en-US", { style: "currency", currency: "USD" });
-      return n < 0 ? "-" + formatted : formatted;
+      const value = Number(n) || 0;
+      const whole = Math.abs(value - Math.round(value)) < 0.005;
+      const formatted = Math.abs(value).toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: whole ? 0 : 2,
+        maximumFractionDigits: 2,
+      });
+      return value < 0 ? "-" + formatted : formatted;
     }
     function num(v) {
       const n = Number(String(v ?? "").replace(/[^0-9.-]/g, ""));
@@ -1277,9 +1382,11 @@
           <div class="big ${short ? "bad" : "good"}">${money(Math.max(0, spend))}</div>
           <div class="meta">${short ? "Short " + money(-spend) : "You can spend"}</div>
         </div>
-        <div class="meta got">Got ${money(received)}</div>
-        <div class="meta send">Send ${money(planned)}</div>
-        <div class="meta pend">Pending ${money(pending)}</div>
+        <div class="hero-facts">
+          <div class="meta got"><span>Got</span><b>${money(received)}</b></div>
+          <div class="meta send"><span>Send</span><b>${money(planned)}</b></div>
+          <div class="meta pend"><span>Pending</span><b>${money(pending)}</b></div>
+        </div>
       `;
       renderMetrics();
       renderPie();
@@ -1541,11 +1648,11 @@
           ? `<button type="button" class="ghost" data-del-slice="${row.sliceId}">Remove</button>`
           : "";
         return `<tr class="${row.sent ? "done" : ""}">
-          <td>${dateCell}</td>
-          <td>${escapeHtml(row.name)}${extra ? `<div class="caption" style="margin:0" ${row.accountId ? `data-left="${row.accountId}"` : ""}>${extra}</div>` : ""}</td>
-          <td class="num">${amountCell}</td>
-          <td><label class="sent-check"><input type="checkbox" ${sentAttr} ${row.sent ? "checked" : ""} /> Sent</label></td>
-          <td>${remove}</td>
+          <td data-label="Date">${dateCell}</td>
+          <td data-label="To">${escapeHtml(row.name)}${extra ? `<div class="caption" style="margin:0" ${row.accountId ? `data-left="${row.accountId}"` : ""}>${extra}</div>` : ""}</td>
+          <td class="num" data-label="Amount">${amountCell}</td>
+          <td data-label="Status"><label class="sent-check"><input type="checkbox" ${sentAttr} ${row.sent ? "checked" : ""} /> Sent</label></td>
+          <td data-label="">${remove}</td>
         </tr>`;
       }).join("");
       document.getElementById("payments").innerHTML = `
@@ -1593,17 +1700,21 @@
         </div>
       `;
     }
+    function fieldActions(item, extra = "") {
+      return `<div class="field-actions">${modeButtons(item)}${extra}<button type="button" class="ghost" data-del="${item.id}">Remove</button></div>`;
+    }
     function billFields(item) {
       const amountField = isFixed(item)
         ? `<div><label>Pays every month</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="amount" value="${escapeAttr(item.amount)}" /></div>`
         : "";
       return `
-        <div class="row bill-row ${isFixed(item) ? "" : "variable"}">
-          <div><label>Name</label><input data-item="${item.id}" data-k="name" value="${escapeAttr(item.name)}" /></div>
-          ${amountField}
-          <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
-          ${modeButtons(item)}
-          <button type="button" class="ghost" data-del="${item.id}">Remove</button>
+        <div class="item-card">
+          <div class="row bill-row ${isFixed(item) ? "" : "variable"}">
+            <div><label>Name</label><input data-item="${item.id}" data-k="name" value="${escapeAttr(item.name)}" /></div>
+            ${amountField}
+            <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
+            ${fieldActions(item)}
+          </div>
         </div>
       `;
     }
@@ -1621,16 +1732,17 @@
         : "";
       const util = cardUtil(item);
       return `
-        <div class="row card-row">
-          <div><label>Name</label><input data-item="${item.id}" data-k="name" value="${escapeAttr(item.name)}" /></div>
-          <div><label>Credit you have</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="limit" value="${escapeAttr(item.limit || "")}" placeholder="Limit" /></div>
-          <div><label>Credit you have used</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="amount" value="${escapeAttr(item.amount)}" /></div>
-          <div><label>Used</label><div class="util ${util.cls}" data-util="${item.id}">${util.text}</div></div>
-          <div><label>APR %</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="apr" value="${escapeAttr(item.apr)}" /></div>
-          <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
-          ${payField}
-          ${modeButtons(item)}
-          <button type="button" class="ghost" data-del="${item.id}">Remove</button>
+        <div class="item-card">
+          <div class="row card-row">
+            <div><label>Name</label><input data-item="${item.id}" data-k="name" value="${escapeAttr(item.name)}" /></div>
+            <div><label>Credit you have</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="limit" value="${escapeAttr(item.limit || "")}" placeholder="Limit" /></div>
+            <div><label>Credit you have used</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="amount" value="${escapeAttr(item.amount)}" /></div>
+            <div><label>Used</label><div class="util ${util.cls}" data-util="${item.id}">${util.text}</div></div>
+            <div><label>APR %</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="apr" value="${escapeAttr(item.apr)}" /></div>
+            <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
+            ${payField}
+            ${fieldActions(item)}
+          </div>
         </div>
       `;
     }
@@ -1639,14 +1751,15 @@
         ? `<div><label>Pays every month</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="fixedPay" value="${escapeAttr(item.fixedPay || "")}" /></div>`
         : "";
       return `
-        <div class="row debt-row">
-          <div><label>Name</label><input data-item="${item.id}" data-k="name" value="${escapeAttr(item.name)}" /></div>
-          <div><label>Amount left</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="amount" value="${escapeAttr(item.amount)}" /></div>
-          <div><label>APR %</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="apr" value="${escapeAttr(item.apr)}" /></div>
-          <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
-          ${payField}
-          ${modeButtons(item)}
-          <button type="button" class="ghost" data-del="${item.id}">Remove</button>
+        <div class="item-card">
+          <div class="row debt-row">
+            <div><label>Name</label><input data-item="${item.id}" data-k="name" value="${escapeAttr(item.name)}" /></div>
+            <div><label>Amount left</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="amount" value="${escapeAttr(item.amount)}" /></div>
+            <div><label>APR %</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="apr" value="${escapeAttr(item.apr)}" /></div>
+            <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
+            ${payField}
+            ${fieldActions(item)}
+          </div>
         </div>
       `;
     }
@@ -1661,8 +1774,7 @@
             <div><label>Amount you owe now</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="amount" value="${escapeAttr(item.amount)}" /></div>
             <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
             ${payField}
-            ${modeButtons(item)}
-            <button type="button" class="ghost" data-del="${item.id}">Remove</button>
+            ${fieldActions(item)}
           </div>
           <div class="row start-row">
             <div>
@@ -1695,13 +1807,14 @@
         ? `<div><label>Pays every month</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="fixedPay" value="${escapeAttr(item.fixedPay || "")}" /></div>`
         : "";
       return `
-        <div class="row bill-row">
-          <div><label>Name</label><input data-item="${item.id}" data-k="name" value="${escapeAttr(item.name)}" /></div>
-          <div><label>Amount left</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="amount" value="${escapeAttr(item.amount)}" /></div>
-          <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
-          ${payField}
-          ${modeButtons(item)}
-          <button type="button" class="ghost" data-del="${item.id}">Remove</button>
+        <div class="item-card">
+          <div class="row bill-row">
+            <div><label>Name</label><input data-item="${item.id}" data-k="name" value="${escapeAttr(item.name)}" /></div>
+            <div><label>Amount left</label><input type="number" min="0" step="0.01" data-item="${item.id}" data-k="amount" value="${escapeAttr(item.amount)}" /></div>
+            <div><label>Due day</label><input type="number" min="1" max="28" data-item="${item.id}" data-k="dueDay" value="${escapeAttr(item.dueDay)}" /></div>
+            ${payField}
+            ${fieldActions(item)}
+          </div>
         </div>
       `;
     }
@@ -1755,17 +1868,21 @@
         return;
       }
       box.innerHTML = list.map((row, i) => `
-        <div class="row key-row">
-          <div><label>Name</label><input data-api="${row.id}" data-ak="label" value="${escapeAttr(row.label || "Key " + (i + 1))}" /></div>
-          <div><label>API key</label><input type="password" autocomplete="off" data-api="${row.id}" data-ak="key" value="${escapeAttr(row.key || "")}" placeholder="sk-ant-…" /></div>
-          <div>
-            <label>Status</label>
-            <div class="api-status ${row.status === "exhausted" || row.status === "invalid" ? "bad" : row.status === "rate_limited" ? "warn" : "good"}">${keyStatusLabel(row)}</div>
+        <div class="item-card">
+          <div class="row key-row">
+            <div><label>Name</label><input data-api="${row.id}" data-ak="label" value="${escapeAttr(row.label || "Key " + (i + 1))}" /></div>
+            <div><label>API key</label><input type="password" autocomplete="off" data-api="${row.id}" data-ak="key" value="${escapeAttr(row.key || "")}" placeholder="sk-ant-…" /></div>
+            <div>
+              <label>Status</label>
+              <div class="api-status ${row.status === "exhausted" || row.status === "invalid" ? "bad" : row.status === "rate_limited" ? "warn" : "good"}">${keyStatusLabel(row)}</div>
+            </div>
+            <div class="field-actions">
+              ${row.status && row.status !== "active" ? `<button type="button" class="ghost" data-api-revive="${row.id}">Use again</button>` : ""}
+              <button type="button" class="ghost" data-api-del="${row.id}">Remove</button>
+            </div>
           </div>
-          ${row.status && row.status !== "active" ? `<button type="button" class="ghost" data-api-revive="${row.id}">Use again</button>` : `<span></span>`}
-          <button type="button" class="ghost" data-api-del="${row.id}">Remove</button>
+          <div class="caption" style="margin:8px 0 0">${row.key ? "Saved as " + escapeHtml(maskKey(row.key)) : "Paste the full key."}</div>
         </div>
-        <div class="caption">${row.key ? "Saved as " + escapeHtml(maskKey(row.key)) : "Paste the full key."}</div>
       `).join("");
     }
     const WEB_SEARCH = {
@@ -2309,17 +2426,17 @@
         const pay = contributeAmount(d);
         const plan = payoffMath(num(d.amount), num(d.apr), pay);
         return `<tr>
-          <td>${escapeHtml(d.name || d.group)}<div class="caption" style="margin:0">${d.group}</div></td>
-          <td class="num">${money(num(d.amount))}</td>
-          <td class="num">${num(d.apr).toFixed(2)}%</td>
-          <td class="num">${money(pay)}</td>
-          <td>${plan.months == null ? "—" : plan.months + " mo"}</td>
-          <td>${plan.date}</td>
-          <td class="num">${plan.interest == null ? "—" : money(plan.interest)}</td>
+          <td data-label="Account">${escapeHtml(d.name || d.group)}<div class="caption" style="margin:0">${d.group}</div></td>
+          <td class="num" data-label="Left">${money(num(d.amount))}</td>
+          <td class="num" data-label="APR">${num(d.apr).toFixed(2)}%</td>
+          <td class="num" data-label="You send">${money(pay)}</td>
+          <td data-label="Months left">${plan.months == null ? "—" : plan.months + " mo"}</td>
+          <td data-label="Payoff">${plan.date}</td>
+          <td class="num" data-label="Interest left">${plan.interest == null ? "—" : money(plan.interest)}</td>
         </tr>`;
       }).join("");
       document.getElementById("payoff").innerHTML = `
-        <table>
+        <table class="stack-table">
           <thead><tr>
             <th>Account</th><th class="num">Left</th><th class="num">APR</th>
             <th class="num">You send</th><th>Months left</th><th>Payoff</th><th class="num">Interest left</th>
